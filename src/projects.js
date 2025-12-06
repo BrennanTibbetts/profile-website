@@ -6,7 +6,7 @@ export const projects = [
   },
   {
     id: 1,
-    title: "Amazon Web Services",
+    title: "AWS Full Stack Development",
     description: "New AWS customers can get started at no cost with the AWS Free Tier. Gain $100 USD credits at sign-up and up to $100 USD more to earn as you explore key AWS services. Test drive AWS services with the Free Plan for up to 6 months. You won't be charged unless you choose the Paid Plan, which allows you to scale your operations and gain access to over 150 AWS services."
   },
   {

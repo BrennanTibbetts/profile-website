@@ -7,18 +7,21 @@ import Experience from "./Experience";
 import Header from "./Header";
 import Actions from "./Actions";
 import ViewInfo from "./ViewInfo";
+import { bioText } from './data';
+import { projects } from './projects';
 
 function App() {
     const [viewIndex, setViewIndex] = useState(1)
-    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
+    const [theme, setTheme] = useState('dark')
     const [showLeva, setShowLeva] = useState(false)
+    const [showInfo, setShowInfo] = useState(false)
+    const [showBio, setShowBio] = useState(false)
 
     const prev = () => setViewIndex((s) => (s - 1 + 3) % 3)
     const next = () => setViewIndex((s) => (s + 1) % 3)
 
     useEffect(() => {
         document.body.classList.toggle('light', theme === 'light')
-        try { localStorage.setItem('theme', theme) } catch (e) {}
     }, [theme])
 
     useEffect(() => {
@@ -34,18 +37,51 @@ function App() {
     return (
         <div className="main">
             <Leva hidden={!showLeva} />
+            
+            {showInfo && (
+                <div className="mobile-info-overlay" onClick={(e) => e.target === e.currentTarget && setShowInfo(false)}>
+                    <div className="mobile-info-content">
+                        <button className="close-info-btn" onClick={() => setShowInfo(false)}>×</button>
+                        <ViewInfo viewIndex={viewIndex} />
+                    </div>
+                </div>
+            )}
+
+            {showBio && (
+                <div className="mobile-info-overlay" onClick={(e) => e.target === e.currentTarget && setShowBio(false)}>
+                    <div className="mobile-info-content">
+                        <button className="close-info-btn" onClick={() => setShowBio(false)}>×</button>
+                        <h2 className="title" style={{marginTop: 0}}>About Me</h2>
+                        <p className="bio">{bioText}</p>
+                    </div>
+                </div>
+            )}
+
             <aside className="panel-left">
                 <Header />
-                <ViewInfo viewIndex={viewIndex} />
-                <Actions theme={theme} setTheme={setTheme} />
+                <div className="desktop-view-info">
+                    <ViewInfo viewIndex={viewIndex} />
+                </div>
+                <Actions theme={theme} setTheme={setTheme} viewControlProps={{prev, next, viewIndex}} />
             </aside>
+
+            <div className="mobile-top-right">
+                <button className="mobile-bio-btn" onClick={() => setShowBio(true)} aria-label="About Me">
+                    <img src="/images/bio.png" alt="Bio" />
+                </button>
+            </div>
+
+            <button className="mobile-info-btn" onClick={() => setShowInfo(true)}>
+                {projects[viewIndex].title}
+            </button>
+
             <main className="panel-right">
                 <div className="canvas-container">
                     <Canvas>
                         <Experience viewIndex={viewIndex} theme={theme} />
                     </Canvas>
 
-                    <div className="view-controls">
+                    <div className="view-controls desktop-only">
                         <button className="btn view-btn" onClick={prev} aria-label="Previous view">‹</button>
                         <div className="view-indicator">{viewIndex + 1} / 3</div>
                         <button className="btn view-btn" onClick={next} aria-label="Next view">›</button>

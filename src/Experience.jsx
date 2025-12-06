@@ -1,4 +1,5 @@
 import { useControls } from 'leva'
+import { useState, useEffect } from 'react'
 import Lights, { modelLightingPresets } from './Lights.jsx'
 import { PhoneModel } from './models/PhoneModel.jsx'
 import { Perf } from 'r3f-perf'
@@ -12,7 +13,18 @@ export default function Experience({ viewIndex = 1, theme = 'dark' })
     performance: false 
   })
 
-    const positions = [ [0, 0, 0], [0, -1, 0], [0, 0, 0] ]
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    const desktopPositions = [ [0, 0, 0], [0, -1, 0], [0, 0, 0] ]
+    const mobilePositions = [ [0, 0, 0], [0, -1, -2], [0, 0, -2] ]
+    
+    const positions = isMobile ? mobilePositions : desktopPositions
     
     const getLightingForModel = (index) => {
       if (index === 0) return modelLightingPresets.phone

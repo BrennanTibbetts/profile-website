@@ -1,0 +1,1 @@
+export const bioText = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus, enim. Incidunt dolore autem, sapiente laudantium natus rem! Maiores expedita cum consequatur rem earum amet aut quod optio voluptates. Sint, temporibus?";

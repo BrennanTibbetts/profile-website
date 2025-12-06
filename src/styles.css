@@ -10,6 +10,7 @@ body,
   margin: 0;
   padding: 0;
   background-color: #272727;
+  overflow: hidden; /* Prevent scrolling */
 }
 
 body {
@@ -25,7 +26,8 @@ body {
 }
 
 .main {
-  height: 100vh;
+  height: 100vh; /* Fallback */
+  height: 100dvh;
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -95,6 +97,13 @@ body {
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin: 12px 0 0 0;
+}
+
+.desktop-view-info {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel-left .view-info {
@@ -264,51 +273,256 @@ body {
   text-align: center;
 }
 
+/* Mobile Info/Bio Buttons */
+.mobile-info-btn {
+  display: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+}
+
+.mobile-bio-btn {
+  display: none;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 17, 17, 0.6);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.mobile-bio-btn img {
+  width: 28px;
+  height: 28px;
+  display: block;
+  filter: invert(1);
+  transition: filter 160ms ease;
+}
+
+body.light .mobile-bio-btn {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.light .mobile-bio-btn img {
+    filter: invert(0);
+}
+
+.mobile-view-controls {
+    display: none;
+}
+
 @media (max-width: 768px) {
   .main {
-    flex-direction: column-reverse;
-    height: auto;
+    display: block;
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .panel-left {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    min-width: 0;
-    padding: 24px;
-    height: auto;
+    height: 100%;
+    background: transparent;
+    pointer-events: none;
+    padding: 20px;
+    padding-top: calc(20px + env(safe-area-inset-top));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    padding-left: calc(20px + env(safe-area-inset-left));
+    padding-right: calc(20px + env(safe-area-inset-right));
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     overflow: visible;
+  }
+
+  .panel-left .left-top {
+    pointer-events: auto;
   }
 
   .panel-left .title {
     font-size: 24px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    margin: 0;
   }
 
   .panel-left .subtitle {
-    font-size: 15px;
+    font-size: 14px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    margin: 4px 0 0 0;
+    color: #e0e0e0;
   }
 
-  .panel-left .bio {
-    font-size: 13px;
+  .panel-left .bio,
+  .panel-left .divider {
+    display: none;
   }
 
-  .panel-left .view-info {
-    font-size: 13px;
-  }
-
-  .panel-right {
-    height: 50vh;
-    min-height: 300px;
-  }
-
-  .view-controls {
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 6px 8px;
+  .desktop-view-info {
+    display: none;
   }
 
   .panel-left .actions {
-    padding-bottom: 12px;
+    pointer-events: auto;
+    margin-top: auto;
+    width: 100%;
+    padding-bottom: 0;
   }
+  
+  .panel-left .actions .divider {
+      display: none;
+  }
+
+  .panel-left .actions-buttons {
+      margin-top: 0;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+  }
+
+  .panel-right {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .mobile-top-right {
+    display: flex;
+    gap: 10px;
+    position: absolute;
+    top: 20px;
+    top: calc(20px + env(safe-area-inset-top));
+    right: 20px;
+    right: calc(20px + env(safe-area-inset-right));
+    z-index: 30;
+    pointer-events: auto;
+  }
+
+  .mobile-info-btn {
+    display: block;
+    position: absolute;
+    bottom: 100px;
+    bottom: calc(100px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    pointer-events: auto;
+  }
+
+  .mobile-bio-btn {
+    display: flex;
+    position: static;
+  }
+
+  .view-controls.desktop-only {
+      display: none;
+  }
+
+  .mobile-view-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin: 0 4px;
+      flex: 1;
+      justify-content: center;
+  }
+  
+  .mobile-view-controls .view-btn {
+      font-size: 24px;
+  }
+
+  .mobile-view-controls .view-indicator {
+      min-width: 30px;
+      font-size: 14px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      margin: 0 12px;
+  }
+}
+
+
+
+/* Mobile Info Overlay */
+.mobile-info-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.mobile-info-content {
+  background: #1f1f1f;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  color: #fff;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.close-info-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-info-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Light theme for popup */
+body.light .mobile-info-content {
+  background: #fff;
+  color: #111;
+}
+body.light .close-info-btn {
+  color: #111;
+}
+body.light .close-info-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+body.light .mobile-info-btn {
+    background: rgba(255, 255, 255, 0.8);
+    color: #111;
+    border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Light theme overrides */
@@ -332,6 +546,10 @@ body.light .panel-left {
 body.light .panel-left .subtitle,
 body.light .panel-left .bio {
   color: #555;
+}
+
+body.light .panel-left .divider {
+  border-top-color: rgba(0, 0, 0, 0.1);
 }
 
 body.light .panel-left .view-info {
@@ -360,4 +578,10 @@ body.light .view-controls {
   background: rgba(255,255,255,0.92);
   border-color: rgba(0,0,0,0.06);
   color: #111;
+}
+
+@media (max-width: 768px) {
+  body.light .panel-left {
+    background: transparent;
+  }
 }

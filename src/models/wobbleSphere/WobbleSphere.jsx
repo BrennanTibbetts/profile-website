@@ -4,14 +4,10 @@ import { useMouseTracking } from "../../hooks/useMouseTracking"
 import { useEffect } from "react"
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils"
 
-export default function WobbleSphere({ visible = true, scale = 1.7 }) {
+export default function WobbleSphere({ visible = true, scale = 1.7, position = [0, 0, 0] }) {
   const trackedRef = useMouseTracking()
 
   const sphereControls = useControls('WobbleSphere', {
-    position: {
-      value: [0,0,1],
-      step: 0.1,
-    },
     scale: {
       value: scale,
       min: 0.1,
@@ -40,7 +36,7 @@ export default function WobbleSphere({ visible = true, scale = 1.7 }) {
   }, [])
 
   return (
-    <mesh ref={trackedRef} position={sphereControls.position} scale={sphereControls.scale} visible={visible} castShadow receiveShadow>
+    <mesh ref={trackedRef} position={position} scale={sphereControls.scale} visible={visible} castShadow receiveShadow>
       <icosahedronGeometry 
         args={[sphereControls.radius, sphereControls.detail]}
       />
