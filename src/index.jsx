@@ -1,18 +1,47 @@
-import React from "react";
 import { createRoot } from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
+import { useState, useEffect } from 'react'
 import "./styles.css";
 import Experience from "./Experience";
-import { Perf } from "r3f-perf";
+import Header from "./Header";
+import Actions from "./Actions";
+import ViewInfo from "./ViewInfo";
+
+function App() {
+    const [viewIndex, setViewIndex] = useState(1)
+    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
+
+    const prev = () => setViewIndex((s) => (s - 1 + 3) % 3)
+    const next = () => setViewIndex((s) => (s + 1) % 3)
+
+    useEffect(() => {
+        document.body.classList.toggle('light', theme === 'light')
+        try { localStorage.setItem('theme', theme) } catch (e) {}
+    }, [theme])
+
+    return (
+        <div className="main">
+            <aside className="panel-left">
+                <Header />
+                <ViewInfo viewIndex={viewIndex} />
+                <Actions theme={theme} setTheme={setTheme} />
+            </aside>
+            <main className="panel-right">
+                <div className="canvas-container">
+                    <Canvas>
+                        <Experience viewIndex={viewIndex} theme={theme} />
+                    </Canvas>
+
+                    <div className="view-controls">
+                        <button className="btn view-btn" onClick={prev} aria-label="Previous view">‹</button>
+                        <div className="view-indicator">{viewIndex + 1} / 3</div>
+                        <button className="btn view-btn" onClick={next} aria-label="Next view">›</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    )
+}
 
 const root = createRoot(document.getElementById("root"));
-root.render(
-    <Canvas 
-        camera={{ 
-            fov: 70, 
-            position: [0, 0, 3] 
-        }}>
-            <Perf position="top-left"/>
-            <Experience/>
-    </Canvas>
-);
+root.render(<App />);

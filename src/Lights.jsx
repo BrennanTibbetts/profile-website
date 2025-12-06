@@ -1,34 +1,92 @@
 import { useControls } from "leva"
+import { useEffect, useRef } from "react"
 
-export default function Lights()
+const defaultLighting = {
+    directional: {
+        position: [0, 1, 0],
+        intensity: 20
+    },
+    ambient: {
+        intensity: 13
+    }
+}
+
+export const modelLightingPresets = {
+    phone: {
+        directional: {
+            position: [-1.2, 1, 0.4],
+            intensity: 13
+        },
+        ambient: {
+            intensity: 7
+        }
+    },
+    aws: {
+        directional: {
+            position: [1, 1, 0.5],
+            intensity: 0
+        },
+        ambient: {
+            intensity: 4
+        }
+    },
+    wobbleSphere: {
+        directional: {
+            position: [-1, 1, 0],
+            intensity: 10
+        },
+        ambient: {
+            intensity: 0
+        }
+    }
+}
+
+export default function Lights({ modelLighting = null })
 {
+    const lightingConfig = modelLighting || defaultLighting
+    const directionalRef = useRef(null)
+    const ambientRef = useRef(null)
 
-    const props = useControls("Lights", {
-        castShadow: true,
-        position: [4,4,1],
-        intensity: 4.5,
-        shadowMapSize: [ 1024, 1024 ],
-        shadowCameraNear: 1,
-        shadowCameraFar: 10,
-        shadowCameraTop: 10,
-        shadowCameraRight: 10,
-        shadowCameraBottom: -10,
-        shadowCameraLeft: -10,
+    const directionalLightControls = useControls('Directional Light', {
+        position: {
+            value: [0, 1, 0],
+            step: 0.1
+        },
+        intensity: {
+            value: 20,
+            min: 0,
+            max: 50,
+            step: 1
+        }
     })
+
+    const ambientLightControls = useControls('Ambient Light', {
+        intensity: {
+            value: 13,
+            min: 0,
+            max: 20,
+            step: 1
+        }
+    })
+
+    // Update lights when modelLighting prop changes
+    useEffect(() => {
+        if (directionalRef.current) {
+            directionalRef.current.position.fromArray(lightingConfig.directional.position)
+            directionalRef.current.intensity = lightingConfig.directional.intensity
+        }
+        if (ambientRef.current) {
+            ambientRef.current.intensity = lightingConfig.ambient.intensity
+        }
+    }, [modelLighting])
 
     return <>
         <directionalLight
-            castShadow={props.castShadow}
-            position={ props.position }
-            intensity={ props.intensity }
-            shadow-mapSize={ props.shadowMapSize }
-            shadow-camera-near={ props.shadowCameraNear }
-            shadow-camera-far={ props.shadowCameraFar }
-            shadow-camera-top={ props.shadowCameraTop }
-            shadow-camera-right={ props.shadowCameraRight }
-            shadow-camera-bottom={ props.shadowCameraBottom }
-            shadow-camera-left={ props.shadowCameraLeft }
+            ref={directionalRef}
+            castShadow
+            position={directionalLightControls.position}
+            intensity={directionalLightControls.intensity}
         />
-        <ambientLight intensity={ 1.5 } />
+        <ambientLight ref={ambientRef} intensity={ ambientLightControls.intensity } />
     </>
 }

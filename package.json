@@ -19,6 +19,7 @@
     "leva": "^0.9.35",
     "r3f-perf": "^7.2.3",
     "react": "^18",
+    "three-custom-shader-material": "^5.4.0",
     "react-dom": "^18",
     "three": "0.171.0",
     "vite-plugin-glsl": "^1.3.1",
