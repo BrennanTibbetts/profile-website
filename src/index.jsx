@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
 import { useState, useEffect } from 'react'
+import { Leva } from 'leva'
 import "./styles.css";
 import Experience from "./Experience";
 import Header from "./Header";
@@ -10,6 +11,7 @@ import ViewInfo from "./ViewInfo";
 function App() {
     const [viewIndex, setViewIndex] = useState(1)
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
+    const [showLeva, setShowLeva] = useState(false)
 
     const prev = () => setViewIndex((s) => (s - 1 + 3) % 3)
     const next = () => setViewIndex((s) => (s + 1) % 3)
@@ -19,8 +21,19 @@ function App() {
         try { localStorage.setItem('theme', theme) } catch (e) {}
     }, [theme])
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.shiftKey && e.key.toLowerCase() === 'h') {
+                setShowLeva((s) => !s)
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
+
     return (
         <div className="main">
+            <Leva hidden={!showLeva} />
             <aside className="panel-left">
                 <Header />
                 <ViewInfo viewIndex={viewIndex} />

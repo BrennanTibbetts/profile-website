@@ -266,17 +266,37 @@ body {
 
 @media (max-width: 768px) {
   .main {
-    flex-direction: column;
+    flex-direction: column-reverse;
+    height: auto;
   }
 
   .panel-left {
     width: 100%;
     min-width: 0;
-    padding: 20px;
+    padding: 24px;
+    height: auto;
+    overflow: visible;
+  }
+
+  .panel-left .title {
+    font-size: 24px;
+  }
+
+  .panel-left .subtitle {
+    font-size: 15px;
+  }
+
+  .panel-left .bio {
+    font-size: 13px;
+  }
+
+  .panel-left .view-info {
+    font-size: 13px;
   }
 
   .panel-right {
-    height: 60vh;
+    height: 50vh;
+    min-height: 300px;
   }
 
   .view-controls {

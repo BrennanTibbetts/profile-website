@@ -1,4 +1,4 @@
-import { Leva, useControls } from 'leva'
+import { useControls } from 'leva'
 import Lights, { modelLightingPresets } from './Lights.jsx'
 import { PhoneModel } from './models/PhoneModel.jsx'
 import { Perf } from 'r3f-perf'
