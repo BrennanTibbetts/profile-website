@@ -10,7 +10,7 @@ export default function Header({ onHeaderClick }) {
 
     const timer = setTimeout(() => {
       setShowHint(true);
-    }, 5000);
+    }, 25000);
 
     return () => clearTimeout(timer);
   }, [onHeaderClick, hasClicked]);
@@ -36,6 +36,7 @@ export default function Header({ onHeaderClick }) {
           }
         }}
       >
+        <div className="info-indicator">i</div>
         <h1 className="title">Brennan Tibbetts</h1>
         <p className="subtitle">3D web developer · Interactive experiences</p>
         <p className="bio">{bioText}</p>
