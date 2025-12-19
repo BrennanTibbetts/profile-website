@@ -52,7 +52,7 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
             dragOffset.current = (delta / window.innerWidth) * (Math.PI * 1.5)
         }
         
-        const onPointerUp = () => {
+        const onPointerUp = (e) => {
             if (!isDragging.current) return
             isDragging.current = false
             
@@ -62,7 +62,8 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
 
             const threshold = Math.PI / 4 // 45 degrees
             
-            if (!isMobile) {
+            // Trigger change if not mobile OR if using a mouse (desktop emulation of mobile)
+            if (!isMobile || e.pointerType === 'mouse') {
                 if (dragOffset.current > threshold) {
                     setSlideIndex(s => s - 1)
                 } else if (dragOffset.current < -threshold) {

@@ -23,7 +23,7 @@ function App() {
     const touchEndY = useRef(null)
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
     const [hasSwiped, setHasSwiped] = useState(false)
-    const [hasClicked, setHasClicked] = useState(false)
+    const [clickedViews, setClickedViews] = useState(new Set())
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768)
@@ -126,10 +126,17 @@ function App() {
                 <div className="desktop-view-info">
                     <ViewInfo viewIndex={viewIndex} />
                 </div>
-                <Actions theme={theme} setTheme={setTheme} viewControlProps={{prev, next, viewIndex}} hasSwiped={hasSwiped} hasClicked={hasClicked} isMobile={isMobile} />
+                <Actions theme={theme} setTheme={setTheme} viewControlProps={{prev, next, viewIndex}} hasSwiped={hasSwiped} hasClicked={clickedViews.has(viewIndex)} isMobile={isMobile} />
             </aside>
 
-            <button className="mobile-info-btn" onClick={() => setShowInfo(true)}>
+            <button className="mobile-info-btn" onClick={() => {
+                setShowInfo(true)
+                setClickedViews(prev => {
+                    const next = new Set(prev)
+                    next.add(viewIndex)
+                    return next
+                })
+            }}>
                 Learn more
             </button>
 
@@ -146,7 +153,11 @@ function App() {
                             onModelClick={() => {
                                 if (isMobile) {
                                     setShowInfo(true)
-                                    setHasClicked(true)
+                                    setClickedViews(prev => {
+                                        const next = new Set(prev)
+                                        next.add(viewIndex)
+                                        return next
+                                    })
                                 }
                             }}
                         />
