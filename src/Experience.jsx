@@ -60,7 +60,7 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
                 onModelClick()
             }
 
-            const threshold = Math.PI / 6 // 30 degrees
+            const threshold = Math.PI / 4 // 45 degrees
             
             if (dragOffset.current > threshold) {
                 setSlideIndex(s => s - 1)

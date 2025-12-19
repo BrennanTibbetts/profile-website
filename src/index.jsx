@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Leva } from 'leva'
 import "./styles.css";
 import Experience from "./Experience";
@@ -17,8 +17,10 @@ function App() {
     const [showLeva, setShowLeva] = useState(false)
     const [showInfo, setShowInfo] = useState(false)
     const [showBio, setShowBio] = useState(false)
-    const [touchStart, setTouchStart] = useState(null)
-    const [touchEnd, setTouchEnd] = useState(null)
+    const touchStart = useRef(null)
+    const touchEnd = useRef(null)
+    const touchStartY = useRef(null)
+    const touchEndY = useRef(null)
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
     const [hasSwiped, setHasSwiped] = useState(false)
     const [hasClicked, setHasClicked] = useState(false)
@@ -29,26 +31,40 @@ function App() {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    const minSwipeDistance = 50 
+    const minSwipeDistance = 75
 
     const onTouchStart = (e) => {
-        setTouchEnd(null) 
-        setTouchStart(e.targetTouches[0].clientX)
+        // Prevent conflict with Experience.jsx drag logic
+        if (e.target.tagName === 'CANVAS') return
+
+        touchEnd.current = null
+        touchStart.current = e.targetTouches[0].clientX
+        touchEndY.current = null
+        touchStartY.current = e.targetTouches[0].clientY
     }
 
-    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX)
+    const onTouchMove = (e) => {
+        touchEnd.current = e.targetTouches[0].clientX
+        touchEndY.current = e.targetTouches[0].clientY
+    }
 
     const onTouchEnd = () => {
         if (showInfo || showBio) return
-        if (!touchStart || !touchEnd) return
-        const distance = touchStart - touchEnd
-        const isLeftSwipe = distance > minSwipeDistance
-        const isRightSwipe = distance < -minSwipeDistance
-        if (isLeftSwipe) {
-            next()
-        }
-        if (isRightSwipe) {
-            prev()
+        if (!touchStart.current || !touchEnd.current) return
+        
+        const distanceX = touchStart.current - touchEnd.current
+        const distanceY = touchStartY.current - touchEndY.current
+        const isLeftSwipe = distanceX > minSwipeDistance
+        const isRightSwipe = distanceX < -minSwipeDistance
+        
+        // Only swipe if horizontal movement is greater than vertical movement
+        if (Math.abs(distanceX) > Math.abs(distanceY)) {
+            if (isLeftSwipe) {
+                next()
+            }
+            if (isRightSwipe) {
+                prev()
+            }
         }
     }
 
@@ -82,9 +98,13 @@ function App() {
             {showInfo && (
                 <div className="mobile-info-overlay" onClick={(e) => e.target === e.currentTarget && setShowInfo(false)}>
                     <div className="mobile-info-content">
-                        <button className="close-info-btn" onClick={() => setShowInfo(false)}>×</button>
-                        <h2 className="title">{projects[viewIndex].title}</h2>
-                        <ViewInfo viewIndex={viewIndex} />
+                        <div className="mobile-info-header">
+                            <h2 className="title">{projects[viewIndex].title}</h2>
+                            <button className="close-info-btn" onClick={() => setShowInfo(false)}>×</button>
+                        </div>
+                        <div className="mobile-info-body">
+                            <ViewInfo viewIndex={viewIndex} />
+                        </div>
                     </div>
                 </div>
             )}
@@ -92,9 +112,13 @@ function App() {
             {showBio && (
                 <div className="mobile-info-overlay" onClick={(e) => e.target === e.currentTarget && setShowBio(false)}>
                     <div className="mobile-info-content">
-                        <button className="close-info-btn" onClick={() => setShowBio(false)}>×</button>
-                        <h2 className="title" style={{marginTop: 0}}>About Me</h2>
-                        <p className="bio">{bioText}</p>
+                        <div className="mobile-info-header">
+                            <h2 className="title" style={{marginTop: 0}}>About Me</h2>
+                            <button className="close-info-btn" onClick={() => setShowBio(false)}>×</button>
+                        </div>
+                        <div className="mobile-info-body">
+                            <p className="bio">{bioText}</p>
+                        </div>
                     </div>
                 </div>
             )}
