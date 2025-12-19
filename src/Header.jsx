@@ -10,7 +10,7 @@ export default function Header({ onHeaderClick }) {
 
     const timer = setTimeout(() => {
       setShowHint(true);
-    }, 25000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [onHeaderClick, hasClicked]);
