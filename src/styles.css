@@ -560,7 +560,7 @@ body.light .mobile-bio-btn img {
   width: 100%;
   position: relative;
   color: #fff;
-  max-height: 80vh;
+  max-height: 60vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
