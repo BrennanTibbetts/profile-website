@@ -89,6 +89,9 @@ function App() {
 
     return (
         <div className="main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+            <div className="landscape-warning">
+                <p>Please rotate your device to portrait mode</p>
+            </div>
             <Leva hidden={!showLeva} />
             
             {showInfo && (
