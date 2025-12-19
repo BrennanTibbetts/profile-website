@@ -3,11 +3,11 @@ import { useRef } from 'react'
 import { useMouseTracking } from '../hooks/useMouseTracking'
 import * as THREE from 'three'
 
-export function PhoneModel(props) {
+export function PhoneModel({ isActive = true, ...props }) {
   const { nodes, materials } = useGLTF('/assets/models/phone/scene.gltf')
   const phoneOffset = new THREE.Quaternion()
   phoneOffset.setFromEuler(new THREE.Euler(-0.16, 0, 0.03))
-  const phoneRef = useMouseTracking(new THREE.Vector3(1, 0, 0), phoneOffset)
+  const phoneRef = useMouseTracking(new THREE.Vector3(1, 0, 0), phoneOffset, isActive)
 
   return (
     <group {...props} dispose={null} ref={phoneRef}>

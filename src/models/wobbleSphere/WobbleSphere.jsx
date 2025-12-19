@@ -3,9 +3,10 @@ import { useControls } from "leva"
 import { useMouseTracking } from "../../hooks/useMouseTracking"
 import { useEffect } from "react"
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils"
+import * as THREE from 'three'
 
-export default function WobbleSphere({ visible = true, scale = 1.7, position = [0, 0, 0] }) {
-  const trackedRef = useMouseTracking()
+export default function WobbleSphere({ visible = true, scale = 1.7, position = [0, 0, 0], isActive = true }) {
+  const trackedRef = useMouseTracking(new THREE.Vector3(1, 0, 0), new THREE.Quaternion(), isActive)
 
   const sphereControls = useControls('WobbleSphere', {
     scale: {

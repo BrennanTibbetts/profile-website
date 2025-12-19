@@ -273,6 +273,10 @@ body {
   text-align: center;
 }
 
+.swipe-hint {
+  display: none;
+}
+
 /* Mobile Info/Bio Buttons */
 .mobile-info-btn {
   display: none;
@@ -387,6 +391,87 @@ body.light .mobile-bio-btn img {
       display: none;
   }
 
+  .hints-wrapper {
+    position: relative;
+    height: 40px;
+    margin-bottom: 24px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .swipe-hint, .click-hint {
+    display: none !important;
+  }
+
+  @media (max-width: 768px) {
+    .swipe-hint, .click-hint {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        font-weight: 600;
+        animation: pulse 2s infinite ease-in-out;
+        transition: opacity 0.5s ease;
+    }
+
+    .swipe-hint {
+        margin-bottom: 0;
+    }
+
+    .swipe-hint.waiting {
+        opacity: 0;
+        animation: none;
+    }
+
+    .swipe-hint.fade-out, .click-hint.fade-out {
+        opacity: 0;
+        animation: none;
+        pointer-events: none;
+    }
+
+    .click-hint {
+        bottom: auto;
+        transform: none;
+        gap: 4px;
+    }
+
+    .click-hint .arrow-up {
+        font-size: 20px;
+        margin-bottom: -2px;
+    }
+    
+    .click-hint .arrow-line {
+        display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    /* Ensure click-hint overrides previous media query styles if any remain */
+    .click-hint {
+        position: absolute;
+        bottom: auto;
+        left: 0;
+        transform: none;
+    }
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+
   .panel-left .actions-buttons {
       margin-top: 0;
       align-items: center;
@@ -416,14 +501,7 @@ body.light .mobile-bio-btn img {
   }
 
   .mobile-info-btn {
-    display: block;
-    position: absolute;
-    bottom: 100px;
-    bottom: calc(100px + env(safe-area-inset-bottom));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 30;
-    pointer-events: auto;
+    display: none;
   }
 
   .mobile-bio-btn {
@@ -485,6 +563,13 @@ body.light .mobile-bio-btn img {
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.mobile-info-content .title {
+    font-size: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    margin-top: 0;
 }
 
 .close-info-btn {
@@ -555,6 +640,11 @@ body.light .panel-left .divider {
 body.light .panel-left .view-info {
   color: #888;
   border-top-color: rgba(0, 0, 0, 0.1);
+}
+body.light .swipe-hint,
+body.light .click-hint {
+    color: rgba(0, 0, 0, 0.6);
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8);
 }
 
 body.light .btn {

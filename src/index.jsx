@@ -11,14 +11,55 @@ import { bioText } from './data';
 import { projects } from './projects';
 
 function App() {
-    const [viewIndex, setViewIndex] = useState(1)
+    const [slideIndex, setSlideIndex] = useState(1)
+    const viewIndex = ((slideIndex % 3) + 3) % 3
     const [theme, setTheme] = useState('dark')
     const [showLeva, setShowLeva] = useState(false)
     const [showInfo, setShowInfo] = useState(false)
     const [showBio, setShowBio] = useState(false)
+    const [touchStart, setTouchStart] = useState(null)
+    const [touchEnd, setTouchEnd] = useState(null)
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+    const [hasSwiped, setHasSwiped] = useState(false)
+    const [hasClicked, setHasClicked] = useState(false)
 
-    const prev = () => setViewIndex((s) => (s - 1 + 3) % 3)
-    const next = () => setViewIndex((s) => (s + 1) % 3)
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    const minSwipeDistance = 50 
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null) 
+        setTouchStart(e.targetTouches[0].clientX)
+    }
+
+    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX)
+
+    const onTouchEnd = () => {
+        if (showInfo || showBio) return
+        if (!touchStart || !touchEnd) return
+        const distance = touchStart - touchEnd
+        const isLeftSwipe = distance > minSwipeDistance
+        const isRightSwipe = distance < -minSwipeDistance
+        if (isLeftSwipe) {
+            next()
+        }
+        if (isRightSwipe) {
+            prev()
+        }
+    }
+
+    const prev = () => {
+        setSlideIndex((s) => s - 1)
+        setHasSwiped(true)
+    }
+    const next = () => {
+        setSlideIndex((s) => s + 1)
+        setHasSwiped(true)
+    }
 
     useEffect(() => {
         document.body.classList.toggle('light', theme === 'light')
@@ -35,13 +76,14 @@ function App() {
     }, [])
 
     return (
-        <div className="main">
+        <div className="main" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
             <Leva hidden={!showLeva} />
             
             {showInfo && (
                 <div className="mobile-info-overlay" onClick={(e) => e.target === e.currentTarget && setShowInfo(false)}>
                     <div className="mobile-info-content">
                         <button className="close-info-btn" onClick={() => setShowInfo(false)}>×</button>
+                        <h2 className="title">{projects[viewIndex].title}</h2>
                         <ViewInfo viewIndex={viewIndex} />
                     </div>
                 </div>
@@ -56,13 +98,12 @@ function App() {
                     </div>
                 </div>
             )}
-
             <aside className="panel-left">
                 <Header />
                 <div className="desktop-view-info">
                     <ViewInfo viewIndex={viewIndex} />
                 </div>
-                <Actions theme={theme} setTheme={setTheme} viewControlProps={{prev, next, viewIndex}} />
+                <Actions theme={theme} setTheme={setTheme} viewControlProps={{prev, next, viewIndex}} hasSwiped={hasSwiped} hasClicked={hasClicked} isMobile={isMobile} />
             </aside>
 
             <div className="mobile-top-right">
@@ -72,13 +113,26 @@ function App() {
             </div>
 
             <button className="mobile-info-btn" onClick={() => setShowInfo(true)}>
-                {projects[viewIndex].title}
+                Learn more
             </button>
 
             <main className="panel-right">
                 <div className="canvas-container">
-                    <Canvas>
-                        <Experience viewIndex={viewIndex} theme={theme} />
+                    <Canvas camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}>
+                        <Experience 
+                            slideIndex={slideIndex} 
+                            setSlideIndex={(val) => {
+                                setSlideIndex(val)
+                                setHasSwiped(true)
+                            }} 
+                            theme={theme} 
+                            onModelClick={() => {
+                                if (isMobile) {
+                                    setShowInfo(true)
+                                    setHasClicked(true)
+                                }
+                            }}
+                        />
                     </Canvas>
 
                     <div className="view-controls desktop-only">
