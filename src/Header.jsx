@@ -30,7 +30,12 @@ export default function Header({ onHeaderClick }) {
         <p className="bio">{bioText}</p>
         <hr className="divider" />
       </div>
-      {!hasClicked && <div className="header-hint">^ CLICK TO LEARN MORE ABOUT ME</div>}
+      {!hasClicked && (
+        <div className="header-hint">
+          <div className="arrow-up">^</div>
+          <div className="text">CLICK TO LEARN MORE ABOUT ME</div>
+        </div>
+      )}
     </div>
   );
 }

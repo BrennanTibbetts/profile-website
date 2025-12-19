@@ -57,7 +57,15 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
             isDragging.current = false
             
             if (isClick.current && onModelClick) {
-                onModelClick()
+                if (isMobile) {
+                    const y = e.clientY
+                    const height = window.innerHeight
+                    if (y > height * 0.25 && y < height * 0.75) {
+                        onModelClick()
+                    }
+                } else {
+                    onModelClick()
+                }
             }
 
             const threshold = Math.PI / 4 // 45 degrees
@@ -83,7 +91,7 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
             window.removeEventListener('pointermove', onPointerMove)
             window.removeEventListener('pointerup', onPointerUp)
         }
-    }, [gl, setSlideIndex])
+    }, [gl, setSlideIndex, isMobile, onModelClick])
 
     const radius = 3.5
     const groupY = 0
