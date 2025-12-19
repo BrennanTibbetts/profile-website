@@ -374,10 +374,7 @@ body {
   }
 
   .panel-left .subtitle {
-    font-size: 13px;
-    text-shadow: none;
-    margin: 2px 0 0 0;
-    color: rgba(255, 255, 255, 0.7);
+    display: none;
   }
 
   .header-hint {
@@ -722,7 +719,8 @@ body.light .view-controls {
   }
 
   body.light .header-hint {
-      color: rgba(0, 0, 0, 0.4);
+      color: rgba(0, 0, 0, 0.6);
+      text-shadow: 0 1px 2px rgba(255,255,255,0.8);
   }
 
   body.light .info-indicator {

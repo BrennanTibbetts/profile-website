@@ -32,8 +32,7 @@ export default function Header({ onHeaderClick }) {
       </div>
       {!hasClicked && (
         <div className="header-hint">
-          <div className="arrow-up">^</div>
-          <div className="text">CLICK TO LEARN MORE ABOUT ME</div>
+          <div className="text">^ CLICK TO LEARN MORE ABOUT ME</div>
         </div>
       )}
     </div>
