@@ -63,15 +63,6 @@ function App() {
         touchStart.current = null
         touchStartY.current = null
     }
-        if (Math.abs(distanceX) > Math.abs(distanceY)) {
-            if (isLeftSwipe) {
-                next()
-            }
-            if (isRightSwipe) {
-                prev()
-            }
-        }
-    }
 
     const prev = () => {
         setSlideIndex((s) => s - 1)
