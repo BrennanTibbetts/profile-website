@@ -1,24 +1,12 @@
 import { bioText } from './data';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function Header({ onHeaderClick }) {
-  const [showHint, setShowHint] = useState(false);
   const [hasClicked, setHasClicked] = useState(false);
-
-  useEffect(() => {
-    if (!onHeaderClick || hasClicked) return;
-
-    const timer = setTimeout(() => {
-      setShowHint(true);
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [onHeaderClick, hasClicked]);
 
   const handleClick = () => {
     if (onHeaderClick) {
       setHasClicked(true);
-      setShowHint(false);
       onHeaderClick();
     }
   };
@@ -42,7 +30,7 @@ export default function Header({ onHeaderClick }) {
         <p className="bio">{bioText}</p>
         <hr className="divider" />
       </div>
-      {showHint && <div className="header-hint">^ CLICK TO LEARN MORE ABOUT ME</div>}
+      {!hasClicked && <div className="header-hint">^ CLICK TO LEARN MORE ABOUT ME</div>}
     </div>
   );
 }
