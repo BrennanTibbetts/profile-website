@@ -1,3 +1,5 @@
+import { projects } from './projects';
+
 export default function Actions({ theme, setTheme, viewControlProps, hasSwiped, hasClicked, isMobile }) {
   const { prev, next, viewIndex } = viewControlProps || {};
   
@@ -8,7 +10,7 @@ export default function Actions({ theme, setTheme, viewControlProps, hasSwiped, 
         <div className="hints-wrapper">
           <div className={`click-hint ${hasClicked ? 'fade-out' : ''}`}>
               <div className="arrow-up">^</div>
-              <div className="text">CLICK TO LEARN MORE</div>
+              <div className="text">CLICK TO LEARN MORE ABOUT {projects[viewIndex]?.subject}</div>
           </div>
           <div className={`swipe-hint ${!hasClicked ? 'waiting' : ''} ${hasSwiped ? 'fade-out' : ''}`}>
               &lt; SWIPE &gt;
