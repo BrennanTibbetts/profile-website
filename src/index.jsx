@@ -122,18 +122,12 @@ function App() {
                 </div>
             )}
             <aside className="panel-left">
-                <Header />
+                <Header onHeaderClick={() => isMobile && setShowBio(true)} />
                 <div className="desktop-view-info">
                     <ViewInfo viewIndex={viewIndex} />
                 </div>
                 <Actions theme={theme} setTheme={setTheme} viewControlProps={{prev, next, viewIndex}} hasSwiped={hasSwiped} hasClicked={hasClicked} isMobile={isMobile} />
             </aside>
-
-            <div className="mobile-top-right">
-                <button className="mobile-bio-btn" onClick={() => setShowBio(true)} aria-label="About Me">
-                    <img src="/images/bio.png" alt="Bio" />
-                </button>
-            </div>
 
             <button className="mobile-info-btn" onClick={() => setShowInfo(true)}>
                 Learn more

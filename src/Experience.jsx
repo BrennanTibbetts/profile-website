@@ -33,8 +33,6 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
 
     // Drag Logic
     useEffect(() => {
-        if (isMobile) return
-
         const canvas = gl.domElement
         
         const onPointerDown = (e) => {
@@ -64,10 +62,12 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
 
             const threshold = Math.PI / 4 // 45 degrees
             
-            if (dragOffset.current > threshold) {
-                setSlideIndex(s => s - 1)
-            } else if (dragOffset.current < -threshold) {
-                setSlideIndex(s => s + 1)
+            if (!isMobile) {
+                if (dragOffset.current > threshold) {
+                    setSlideIndex(s => s - 1)
+                } else if (dragOffset.current < -threshold) {
+                    setSlideIndex(s => s + 1)
+                }
             }
             
             dragOffset.current = 0
