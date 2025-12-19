@@ -33,6 +33,8 @@ export default function Experience({ slideIndex = 1, setSlideIndex, theme = 'dar
 
     // Drag Logic
     useEffect(() => {
+        if (isMobile) return
+
         const canvas = gl.domElement
         
         const onPointerDown = (e) => {

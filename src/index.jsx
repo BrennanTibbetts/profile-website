@@ -31,33 +31,38 @@ function App() {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    const minSwipeDistance = 75
+    const minSwipeDistance = 50
 
     const onTouchStart = (e) => {
-        // Prevent conflict with Experience.jsx drag logic
-        if (e.target.tagName === 'CANVAS') return
-
-        touchEnd.current = null
         touchStart.current = e.targetTouches[0].clientX
-        touchEndY.current = null
         touchStartY.current = e.targetTouches[0].clientY
     }
 
-    const onTouchMove = (e) => {
-        touchEnd.current = e.targetTouches[0].clientX
-        touchEndY.current = e.targetTouches[0].clientY
-    }
-
-    const onTouchEnd = () => {
+    const onTouchEnd = (e) => {
         if (showInfo || showBio) return
-        if (!touchStart.current || !touchEnd.current) return
+        if (!touchStart.current) return
         
-        const distanceX = touchStart.current - touchEnd.current
-        const distanceY = touchStartY.current - touchEndY.current
+        const touchEndX = e.changedTouches[0].clientX
+        const touchEndY = e.changedTouches[0].clientY
+        
+        const distanceX = touchStart.current - touchEndX
+        const distanceY = touchStartY.current - touchEndY
         const isLeftSwipe = distanceX > minSwipeDistance
         const isRightSwipe = distanceX < -minSwipeDistance
         
         // Only swipe if horizontal movement is greater than vertical movement
+        if (Math.abs(distanceX) > Math.abs(distanceY)) {
+            if (isLeftSwipe) {
+                next()
+            }
+            if (isRightSwipe) {
+                prev()
+            }
+        }
+        
+        touchStart.current = null
+        touchStartY.current = null
+    }
         if (Math.abs(distanceX) > Math.abs(distanceY)) {
             if (isLeftSwipe) {
                 next()
@@ -92,7 +97,7 @@ function App() {
     }, [])
 
     return (
-        <div className="main" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+        <div className="main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             <Leva hidden={!showLeva} />
             
             {showInfo && (
