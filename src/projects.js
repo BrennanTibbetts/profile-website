@@ -16,5 +16,11 @@ export const projects = [
     title: "3D Web Design",
     subject: "3D WEB DESIGN",
     description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum varius lacinia diam, in scelerisque elit interdum at. Ut ante augue, finibus vel vehicula et, imperdiet id nisl. Ut at tortor quis nulla iaculis cursus eget eget risus. Curabitur in lacus nibh. Pellentesque nec vulputate dui. Nam ut augue nulla. Cras volutpat turpis quam, eget euismod nibh feugiat id. Quisque viverra placerat magna sed commodo. Fusce feugiat ex sit amet cursus venenatis. Vestibulum lobortis viverra eros, vitae interdum mi tristique at. Phasellus ut porttitor ante, a molestie arcu. Fusce sit amet lorem id metus vehicula tempus. Integer convallis justo et felis sollicitudin porta. Donec mauris nibh, molestie sit amet porta ac, pretium ut nulla. Phasellus pulvinar non ante at molestie. Vivamus vitae lorem varius nibh fermentum elementum nec non ante. Sed a porta ipsum, at malesuada nunc. Donec interdum sem ut nisi suscipit consequat. Duis gravida, lectus in facilisis volutpat, augue purus tempor nibh, et luctus urna nunc a nulla. Pellentesque quis diam dui. Praesent vitae interdum nulla. Vestibulum est risus, blandit in lectus non, dapibus fringilla elit. Donec at justo aliquam est ultrices molestie non id lorem. Aliquam felis metus, posuere eu libero sed, interdum maximus tortor. Suspendisse auctor lacus lobortis lectus dictum efficitur. Proin convallis turpis enim, in condimentum nisl pharetra id. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Cras quis ex et velit iaculis placerat."
+  },
+  {
+    id: 3,
+    title: "Jar Project",
+    subject: "JAR PROJECT",
+    description: "This is a placeholder for the Jar project description."
   }
 ];

@@ -1,0 +1,134 @@
+/* Layout styles - Main structure, panels, and containers */
+
+.main {
+  height: 100vh; /* Fallback */
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  background: linear-gradient(180deg, #1f1f1f 0%, #232323 100%);
+}
+
+.panel-left {
+  width: 33%;
+  min-width: 300px;
+  background: linear-gradient(180deg, #0f0f0f 0%, #151515 100%);
+  padding: 36px 28px;
+  padding-bottom: 26px;
+  color: #f8f8f8;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.panel-left::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-left::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-left::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background 200ms ease;
+}
+
+.panel-left::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.panel-left .left-top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.panel-left .divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 12px 0 0 0;
+}
+
+.desktop-view-info {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-left .view-info {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #b0b0b0;
+  padding-top: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-right: -4px;
+}
+
+.panel-left .view-info::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-left .view-info::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-left .view-info::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background 200ms ease;
+}
+
+.panel-left .view-info::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.panel-left .view-info p {
+  margin: 0;
+}
+
+.panel-right {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.landscape-warning {
+    display: none;
+}
+
+@media only screen and (max-height: 500px) and (orientation: landscape) {
+    .landscape-warning {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #1f1f1f;
+        color: #fff;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .landscape-warning p {
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0;
+    }
+}

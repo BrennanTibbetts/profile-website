@@ -1,0 +1,94 @@
+/* Light theme styles - All light theme overrides */
+
+body.light {
+  background-color: #f6f6f6;
+  color: #111;
+  --contrast-bg: #111111;
+  --contrast-border: rgba(255,255,255,0.12);
+  --contrast-color: #ffffff;
+}
+
+body.light .main {
+  background: linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%);
+}
+
+body.light .panel-left {
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  color: #111;
+}
+
+body.light .panel-left .subtitle,
+body.light .panel-left .bio {
+  color: #555;
+}
+
+body.light .panel-left .divider {
+  border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .panel-left .view-info {
+  color: #888;
+  border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .swipe-hint,
+body.light .click-hint {
+    color: rgba(0, 0, 0, 0.6);
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+body.light .btn {
+  color: #111;
+  border-color: rgba(0,0,0,0.08);
+}
+
+body.light .social-btn img {
+  filter: invert(0);
+}
+
+body.light .social-btn,
+body.light .theme-toggle,
+body.light .view-btn {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #111;
+}
+
+body.light .view-controls {
+  background: rgba(255,255,255,0.92);
+  border-color: rgba(0,0,0,0.06);
+  color: #111;
+}
+
+/* Light theme for mobile overlays */
+body.light .mobile-info-content {
+  background: #fff;
+  color: #111;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .mobile-info-header {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .close-info-btn {
+  color: #111;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light .close-info-btn:hover {
+    background: rgba(0,0,0,0.05);
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+body.light .mobile-info-btn {
+    background: rgba(255, 255, 255, 0.8);
+    color: #111;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Light theme landscape warning */
+body.light .landscape-warning {
+    background-color: #f6f6f6;
+    color: #111;
+}

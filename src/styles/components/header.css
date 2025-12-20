@@ -1,0 +1,32 @@
+/* Header component styles */
+
+.header-container {
+  position: relative;
+}
+
+.info-indicator {
+  display: none;
+}
+
+.header-hint {
+  display: none;
+}
+
+.panel-left .title {
+  margin: 0 0 6px 0;
+  font-size: 40px;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+}
+
+.panel-left .subtitle {
+  margin: 0;
+  font-size: 18px;
+  color: #cfcfcf;
+}
+
+.panel-left .bio {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #dcdcdc;
+}

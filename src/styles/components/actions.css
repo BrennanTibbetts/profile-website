@@ -1,0 +1,101 @@
+/* Actions component styles - Buttons, social links, theme toggle, and hints */
+
+.panel-left .actions {
+  flex-shrink: 0;
+  padding-bottom: 0;
+}
+
+.panel-left .actions-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #111111;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.social-btn img {
+  width: 36px;
+  height: 36px;
+  display: block;
+  filter: invert(1);
+  transition: filter 160ms ease;
+}
+
+.theme-toggle {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #111111;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.social-btn,
+.theme-toggle,
+.view-btn {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #111111;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 0;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.panel-left .actions .theme-toggle {
+  margin-left: auto;
+}
+
+.hints-wrapper {
+  position: relative;
+  height: 40px;
+  margin-bottom: 24px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swipe-hint, .click-hint {
+  display: none !important;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}

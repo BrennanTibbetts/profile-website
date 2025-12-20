@@ -1,0 +1,20 @@
+/* Main styles entry point - Imports all modular styles */
+
+/* Base styles */
+@import './base.css';
+
+/* Layout styles */
+@import './layout.css';
+
+/* Component styles */
+@import './components/header.css';
+@import './components/actions.css';
+@import './components/overlay.css';
+@import './components/controls.css';
+@import './components/canvas.css';
+
+/* Theme styles */
+@import './themes/light.css';
+
+/* Responsive styles */
+@import './responsive/mobile.css';

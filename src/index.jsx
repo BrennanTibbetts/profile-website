@@ -1,91 +1,52 @@
 import { createRoot } from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Leva } from 'leva'
-import "./styles.css";
+import "./styles/index.css";
 import Experience from "./Experience";
 import Header from "./Header";
 import Actions from "./Actions";
 import ViewInfo from "./ViewInfo";
-import { bioText } from './data';
+import MobileOverlay from "./components/MobileOverlay";
 import { projects } from './projects';
+import { useViewState } from './hooks/useViewState';
+import { useSwipeGesture } from './hooks/useSwipeGesture';
 
 function App() {
-    const [slideIndex, setSlideIndex] = useState(1)
-    const viewIndex = ((slideIndex % 3) + 3) % 3
-    const [theme, setTheme] = useState('dark')
-    const [showLeva, setShowLeva] = useState(false)
-    const [showInfo, setShowInfo] = useState(false)
-    const [showBio, setShowBio] = useState(false)
-    const touchStart = useRef(null)
-    const touchEnd = useRef(null)
-    const touchStartY = useRef(null)
-    const touchEndY = useRef(null)
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
-    const [hasSwiped, setHasSwiped] = useState(false)
-    const [clickedViews, setClickedViews] = useState(new Set())
+    const [theme, setTheme] = useState('dark');
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    
+    const {
+        slideIndex,
+        setSlideIndex,
+        viewIndex,
+        prev,
+        next,
+        showLeva,
+        showInfo,
+        setShowInfo,
+        showBio,
+        setShowBio,
+        hasSwiped,
+        clickedViews,
+        markViewAsClicked,
+    } = useViewState();
+
+    const { onTouchStart, onTouchEnd } = useSwipeGesture(
+        next,
+        prev,
+        !showInfo && !showBio
+    );
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768)
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    const minSwipeDistance = 50
-
-    const onTouchStart = (e) => {
-        touchStart.current = e.targetTouches[0].clientX
-        touchStartY.current = e.targetTouches[0].clientY
-    }
-
-    const onTouchEnd = (e) => {
-        if (showInfo || showBio) return
-        if (!touchStart.current) return
-        
-        const touchEndX = e.changedTouches[0].clientX
-        const touchEndY = e.changedTouches[0].clientY
-        
-        const distanceX = touchStart.current - touchEndX
-        const distanceY = touchStartY.current - touchEndY
-        const isLeftSwipe = distanceX > minSwipeDistance
-        const isRightSwipe = distanceX < -minSwipeDistance
-        
-        // Only swipe if horizontal movement is greater than vertical movement
-        if (Math.abs(distanceX) > Math.abs(distanceY)) {
-            if (isLeftSwipe) {
-                next()
-            }
-            if (isRightSwipe) {
-                prev()
-            }
-        }
-        
-        touchStart.current = null
-        touchStartY.current = null
-    }
-
-    const prev = () => {
-        setSlideIndex((s) => s - 1)
-        setHasSwiped(true)
-    }
-    const next = () => {
-        setSlideIndex((s) => s + 1)
-        setHasSwiped(true)
-    }
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
-        document.body.classList.toggle('light', theme === 'light')
-    }, [theme])
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.shiftKey && e.key.toLowerCase() === 'h') {
-                setShowLeva((s) => !s)
-            }
-        }
-        window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [])
+        document.body.classList.toggle('light', theme === 'light');
+    }, [theme]);
 
     return (
         <div className="main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -94,49 +55,41 @@ function App() {
             </div>
             <Leva hidden={!showLeva} />
             
-            {showInfo && (
-                <div className="mobile-info-overlay" onClick={(e) => e.target === e.currentTarget && setShowInfo(false)}>
-                    <div className="mobile-info-content">
-                        <div className="mobile-info-header">
-                            <h2 className="title">{projects[viewIndex].title}</h2>
-                            <button className="close-info-btn" onClick={() => setShowInfo(false)}>×</button>
-                        </div>
-                        <div className="mobile-info-body">
-                            <ViewInfo viewIndex={viewIndex} />
-                        </div>
-                    </div>
-                </div>
-            )}
+            <MobileOverlay 
+                type="info" 
+                isOpen={showInfo} 
+                onClose={() => setShowInfo(false)} 
+                viewIndex={viewIndex} 
+            />
 
-            {showBio && (
-                <div className="mobile-info-overlay" onClick={(e) => e.target === e.currentTarget && setShowBio(false)}>
-                    <div className="mobile-info-content">
-                        <div className="mobile-info-header">
-                            <h2 className="title" style={{marginTop: 0}}>About Me</h2>
-                            <button className="close-info-btn" onClick={() => setShowBio(false)}>×</button>
-                        </div>
-                        <div className="mobile-info-body">
-                            <p className="bio">{bioText}</p>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <MobileOverlay 
+                type="bio" 
+                isOpen={showBio} 
+                onClose={() => setShowBio(false)} 
+            />
+
             <aside className="panel-left">
                 <Header onHeaderClick={() => isMobile && setShowBio(true)} />
                 <div className="desktop-view-info">
                     <ViewInfo viewIndex={viewIndex} />
                 </div>
-                <Actions theme={theme} setTheme={setTheme} viewControlProps={{prev, next, viewIndex}} hasSwiped={hasSwiped} hasClicked={clickedViews.has(viewIndex)} isMobile={isMobile} />
+                <Actions 
+                    theme={theme} 
+                    setTheme={setTheme} 
+                    viewControlProps={{ prev, next, viewIndex }} 
+                    hasSwiped={hasSwiped} 
+                    hasClicked={clickedViews.has(viewIndex)} 
+                    isMobile={isMobile} 
+                />
             </aside>
 
-            <button className="mobile-info-btn" onClick={() => {
-                setShowInfo(true)
-                setClickedViews(prev => {
-                    const next = new Set(prev)
-                    next.add(viewIndex)
-                    return next
-                })
-            }}>
+            <button 
+                className="mobile-info-btn" 
+                onClick={() => {
+                    setShowInfo(true);
+                    markViewAsClicked(viewIndex);
+                }}
+            >
                 Learn more
             </button>
 
@@ -146,18 +99,13 @@ function App() {
                         <Experience 
                             slideIndex={slideIndex} 
                             setSlideIndex={(val) => {
-                                setSlideIndex(val)
-                                setHasSwiped(true)
+                                setSlideIndex(val);
                             }} 
                             theme={theme} 
                             onModelClick={() => {
                                 if (isMobile) {
-                                    setShowInfo(true)
-                                    setClickedViews(prev => {
-                                        const next = new Set(prev)
-                                        next.add(viewIndex)
-                                        return next
-                                    })
+                                    setShowInfo(true);
+                                    markViewAsClicked(viewIndex);
                                 }
                             }}
                         />
@@ -165,7 +113,7 @@ function App() {
 
                     <div className="view-controls desktop-only">
                         <button className="btn view-btn" onClick={prev} aria-label="Previous view">‹</button>
-                        <div className="view-indicator">{viewIndex + 1} / 3</div>
+                        <div className="view-indicator">{viewIndex + 1} / {projects.length}</div>
                         <button className="btn view-btn" onClick={next} aria-label="Next view">›</button>
                     </div>
                 </div>
