@@ -215,10 +215,10 @@ export default function JarModel({ isActive = true }) {
     jarScale: { value: 20, min: 0.1, max: 30, step: 0.1 },
     objectSize: { value: 0.008, min: 0.005, max: 0.05, step: 0.001 },
     spawnHeight: { value: 0.03, min: 0, max: 0.5, step: 0.01 },
-    numSpheres: { value: 50, min: 0, max: 50, step: 1 },
-    numCubes: { value: 50, min: 0, max: 50, step: 1 },
-    numTorus: { value: 50, min: 0, max: 50, step: 1 },
-    numTorusKnots: { value: 50, min: 0, max: 50, step: 1 },
+    numSpheres: { value: 100, min: 0, max:1000, step: 1 },
+    numCubes: { value: 100, min: 0, max: 1000, step: 1 },
+    numTorus: { value: 0, min: 0, max: 1000, step: 1 },
+    numTorusKnots: { value: 100, min: 0, max: 1000, step: 1 },
   });
 
   const { colliderRadius, colliderHeight, colliderY, showColliders, wallThickness, bottomThickness, groundY, groundSize } = useControls("Physics Collider", {

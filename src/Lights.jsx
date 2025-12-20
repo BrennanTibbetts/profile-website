@@ -29,15 +29,6 @@ export const modelLightingPresets = {
         ambient: {
             intensity: 4
         }
-    },
-    wobbleSphere: {
-        directional: {
-            position: [-1, 1, 0],
-            intensity: 10
-        },
-        ambient: {
-            intensity: 0
-        }
     }
 }
 
