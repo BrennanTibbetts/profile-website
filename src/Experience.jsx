@@ -10,7 +10,6 @@ import JarModel from "./models/JarModel.jsx";
 import { projects } from "./projects.js";
 import { usePointerDrag } from "./hooks/usePointerDrag.js";
 import { useCarouselRotation } from "./hooks/useCarouselRotation.js";
-import { Beaker } from "./models/Beaker.jsx";
 
 export default function Experience({ slideIndex = 0, setSlideIndex, theme = "dark", onModelClick }) {
   const numItems = projects.length;
@@ -69,7 +68,6 @@ export default function Experience({ slideIndex = 0, setSlideIndex, theme = "dar
         </group>
         <group position={getPosition(2, 0)} rotation={getRotation(2)}>
           <JarModel isActive={viewIndex === 2} />
-          {/* <Beaker scale={10}/> */}
         </group>
       </group>
     </>

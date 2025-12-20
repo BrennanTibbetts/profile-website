@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { useState, useEffect } from 'react'
 import { Leva } from 'leva'
 import "./styles/index.css";
@@ -11,6 +11,16 @@ import MobileOverlay from "./components/MobileOverlay";
 import { projects } from './projects';
 import { useViewState } from './hooks/useViewState';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
+
+function CameraController({ isMobile }) {
+    const { camera } = useThree();
+    
+    useEffect(() => {
+        camera.position.z = isMobile ? 16 : 12;
+    }, [isMobile, camera]);
+    
+    return null;
+}
 
 function App() {
     const [theme, setTheme] = useState('dark');
@@ -96,6 +106,7 @@ function App() {
             <main className="panel-right">
                 <div className="canvas-container">
                     <Canvas camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}>
+                        <CameraController isMobile={isMobile} />
                         <Experience 
                             slideIndex={slideIndex} 
                             setSlideIndex={(val) => {
