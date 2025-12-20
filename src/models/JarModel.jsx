@@ -1,7 +1,7 @@
 import { Physics, useCylinder, useSphere, useBox, usePlane, useCompoundBody } from "@react-three/cannon";
 import { MeshTransmissionMaterial, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo, useEffect, useState, useCallback } from "react";
 import { useControls } from "leva";
 import * as THREE from "three";
 import useStore from "../stores/useStore";
@@ -32,7 +32,7 @@ function getSharedGeometries(size) {
 }
 
 // Physics body that updates an instance matrix
-function PhysicsBody({ type, position, size, instanceRef, instanceIndex, linearDamping, angularDamping, sleepSpeedLimit, sleepTimeLimit, friction, restitution }) {
+function PhysicsBody({ type, position, size, instanceRef, instanceIndex, linearDamping, angularDamping, sleepSpeedLimit, sleepTimeLimit, friction, restitution, onPositionUpdate, objectId }) {
   const tempObject = useMemo(() => new THREE.Object3D(), []);
   
   const physicsArgs = useMemo(() => {
@@ -64,6 +64,10 @@ function PhysicsBody({ type, position, size, instanceRef, instanceIndex, linearD
     
     const unsubPosition = api.position.subscribe((p) => {
       tempObject.position.set(p[0], p[1], p[2]);
+      // Report position back to parent for despawn check
+      if (onPositionUpdate) {
+        onPositionUpdate(objectId, p[1]);
+      }
     });
     
     const unsubRotation = api.quaternion.subscribe((q) => {
@@ -79,7 +83,7 @@ function PhysicsBody({ type, position, size, instanceRef, instanceIndex, linearD
       unsubPosition();
       unsubRotation();
     };
-  }, [api, instanceRef, instanceIndex, tempObject]);
+  }, [api, instanceRef, instanceIndex, tempObject, onPositionUpdate, objectId]);
 
   return null;
 }
@@ -96,7 +100,8 @@ function InstancedShapes({
   sleepSpeedLimit, 
   sleepTimeLimit, 
   friction, 
-  restitution 
+  restitution,
+  onPositionUpdate
 }) {
   const meshRef = useRef();
   const count = objectsData.length;
@@ -126,7 +131,7 @@ function InstancedShapes({
       />
       {objectsData.map((data, i) => (
         <PhysicsBody
-          key={`${type}-${i}`}
+          key={data.id}
           type={type}
           position={data.position}
           size={size}
@@ -138,6 +143,8 @@ function InstancedShapes({
           sleepTimeLimit={sleepTimeLimit}
           friction={friction}
           restitution={restitution}
+          onPositionUpdate={onPositionUpdate}
+          objectId={data.id}
         />
       ))}
     </>
@@ -155,7 +162,8 @@ function InstancedShapeGroup({
   sleepSpeedLimit,
   sleepTimeLimit,
   friction,
-  restitution
+  restitution,
+  onPositionUpdate
 }) {
   // Group objects by color index
   const groupedByColor = useMemo(() => {
@@ -186,6 +194,7 @@ function InstancedShapeGroup({
             sleepTimeLimit={sleepTimeLimit}
             friction={friction}
             restitution={restitution}
+            onPositionUpdate={onPositionUpdate}
           />
         )
       ))}
@@ -313,14 +322,14 @@ export default function JarModel({ isActive = true }) {
     clearcoatRoughness: { value: 0, min: 0, max: 1, step: 0.01 },
   });
 
-  const { jarScale, objectSize, numSpheres, numCubes, numTorus, numTorusKnots, spawnHeight } = useControls("Jar Settings", {
+  const { jarScale, objectSize, maxObjects, spawnHeight, streamSpeed, streamSpacing, despawnY } = useControls("Jar Settings", {
     jarScale: { value: 20, min: 0.1, max: 30, step: 0.1 },
     objectSize: { value: 0.008, min: 0.005, max: 0.05, step: 0.001 },
-    spawnHeight: { value: 0.03, min: 0, max: 0.5, step: 0.01 },
-    numSpheres: { value: 100, min: 0, max:1000, step: 1 },
-    numCubes: { value: 100, min: 0, max: 1000, step: 1 },
-    numTorus: { value: 0, min: 0, max: 1000, step: 1 },
-    numTorusKnots: { value: 100, min: 0, max: 1000, step: 1 },
+    spawnHeight: { value: 0.25, min: 0, max: 0.5, step: 0.01 },
+    maxObjects: { value: 500, min: 10, max: 2000, step: 10, label: "Max Objects" },
+    streamSpeed: { value: 3, min: 0.5, max: 30, step: 0.5, label: "Stream Speed (objects/sec)" },
+    streamSpacing: { value: 0.02, min: 0.005, max: 0.1, step: 0.005, label: "Stream Spacing" },
+    despawnY: { value: -3, min: -5, max: 0, step: 0.1, label: "Despawn Y Level" },
   });
 
   const { colliderRadius, colliderHeight, colliderY, showColliders, wallThickness, bottomThickness, groundY, groundSize } = useControls("Physics Collider", {
@@ -342,50 +351,107 @@ export default function JarModel({ isActive = true }) {
     restitution: { value: 0.01, min: 0, max: 1, step: 0.01 },
     solverIterations: { value: 15, min: 5, max: 100, step: 1 },
   });
-  // Generate random positions for all objects within the jar bounds
-  const objectsData = useMemo(() => {
-    const radius = colliderRadius * 0.7; // Keep objects within jar
-    const height = colliderHeight;
-    const baseY = colliderY - height / 2 + objectSize * 2;
-    
-    const generatePosition = () => {
-      const angle = Math.random() * Math.PI * 2;
-      const r = Math.random() * radius;
-      const y = baseY + spawnHeight + Math.random() * (height * 0.3);
-      return [
-        Math.cos(angle) * r,
-        y,
-        Math.sin(angle) * r
-      ];
-    };
+
+  // Shape types for random selection
+  const SHAPE_TYPES = ['sphere', 'cube', 'torusKnot'];
+  
+  // Track spawned objects state - now a flat array with type info
+  const [spawnedObjects, setSpawnedObjects] = useState([]);
+  const nextIdRef = useRef(0);
+  const lastSpawnTimeRef = useRef(0);
+  const objectPositionsRef = useRef(new Map()); // Track y positions for despawn
+  const objectsToRemoveRef = useRef(new Set()); // Buffer for objects to remove
+  
+  // Position update callback - track positions for despawn check
+  const handlePositionUpdate = useCallback((objectId, yPosition) => {
+    objectPositionsRef.current.set(objectId, yPosition);
+  }, []);
+
+  // Generate spawn position for streaming (from above, centered with slight randomness)
+  const generateStreamPosition = useCallback(() => {
+    const radius = colliderRadius * 0.3; // Tighter spawn radius for stream effect
+    const angle = Math.random() * Math.PI * 2;
+    const r = Math.random() * radius;
+    const baseY = colliderY + colliderHeight / 2 + spawnHeight; // Start above the jar
+    return [
+      Math.cos(angle) * r,
+      baseY,
+      Math.sin(angle) * r
+    ];
+  }, [colliderRadius, colliderHeight, colliderY, spawnHeight]);
+
+  // Create a new random object
+  const createRandomObject = useCallback(() => {
+    const type = SHAPE_TYPES[Math.floor(Math.random() * SHAPE_TYPES.length)];
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const id = nextIdRef.current++;
     
     return {
-      spheres: Array.from({ length: numSpheres }, (_, i) => ({
-        position: generatePosition(),
-        color: COLORS[i % COLORS.length]
-      })),
-      cubes: Array.from({ length: numCubes }, (_, i) => ({
-        position: generatePosition(),
-        color: COLORS[(i + 1) % COLORS.length]
-      })),
-      torus: Array.from({ length: numTorus }, (_, i) => ({
-        position: generatePosition(),
-        color: COLORS[(i + 2) % COLORS.length]
-      })),
-      torusKnots: Array.from({ length: numTorusKnots }, (_, i) => ({
-        position: generatePosition(),
-        color: COLORS[(i + 3) % COLORS.length]
-      }))
+      id,
+      type,
+      color,
+      position: generateStreamPosition()
     };
-  }, [numSpheres, numCubes, numTorus, numTorusKnots, colliderRadius, colliderHeight, colliderY, objectSize, spawnHeight]);
+  }, [generateStreamPosition]);
+
+  // Group spawned objects by type for rendering
+  const objectsByType = useMemo(() => {
+    const grouped = {
+      sphere: [],
+      cube: [],
+      torus: [],
+      torusKnot: []
+    };
+    spawnedObjects.forEach(obj => {
+      if (grouped[obj.type]) {
+        grouped[obj.type].push(obj);
+      }
+    });
+    return grouped;
+  }, [spawnedObjects]);
 
   // Get shared geometries for the current object size
   const geometries = useMemo(() => getSharedGeometries(objectSize), [objectSize]);
 
   // Smooth tilt animation - affects gravity for physics and jar visual rotation
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (jarRef.current && isActive) {
       jarRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.05;
+    }
+    
+    // Check for objects to despawn (y < despawnY in world space)
+    const scaledDespawnY = despawnY / jarScale; // Convert world Y to local Y
+    objectPositionsRef.current.forEach((yPos, id) => {
+      if (yPos < scaledDespawnY) {
+        objectsToRemoveRef.current.add(id);
+      }
+    });
+    
+    // Remove despawned objects
+    if (objectsToRemoveRef.current.size > 0) {
+      const toRemove = objectsToRemoveRef.current;
+      setSpawnedObjects(prev => prev.filter(obj => !toRemove.has(obj.id)));
+      // Clean up position tracking
+      toRemove.forEach(id => objectPositionsRef.current.delete(id));
+      objectsToRemoveRef.current = new Set();
+    }
+    
+    // Stream spawning logic - spawn if under max count
+    const currentCount = spawnedObjects.length;
+    if (currentCount < maxObjects) {
+      const spawnInterval = 1 / streamSpeed; // Time between spawns
+      lastSpawnTimeRef.current += delta;
+      
+      // Spawn multiple objects per frame if needed (for high speeds)
+      const objectsToAdd = [];
+      while (lastSpawnTimeRef.current >= spawnInterval && (currentCount + objectsToAdd.length) < maxObjects) {
+        objectsToAdd.push(createRandomObject());
+        lastSpawnTimeRef.current -= spawnInterval;
+      }
+      
+      if (objectsToAdd.length > 0) {
+        setSpawnedObjects(prev => [...prev, ...objectsToAdd]);
+      }
     }
     
     if (isTilting) {
@@ -465,7 +531,7 @@ export default function JarModel({ isActive = true }) {
         <InstancedShapeGroup
           type="sphere"
           geometry={geometries.sphere}
-          allObjectsData={objectsData.spheres}
+          allObjectsData={objectsByType.sphere}
           size={objectSize}
           linearDamping={linearDamping}
           angularDamping={angularDamping}
@@ -473,12 +539,13 @@ export default function JarModel({ isActive = true }) {
           sleepTimeLimit={sleepTimeLimit}
           friction={friction}
           restitution={restitution}
+          onPositionUpdate={handlePositionUpdate}
         />
         
         <InstancedShapeGroup
           type="cube"
           geometry={geometries.cube}
-          allObjectsData={objectsData.cubes}
+          allObjectsData={objectsByType.cube}
           size={objectSize}
           linearDamping={linearDamping}
           angularDamping={angularDamping}
@@ -486,12 +553,13 @@ export default function JarModel({ isActive = true }) {
           sleepTimeLimit={sleepTimeLimit}
           friction={friction}
           restitution={restitution}
+          onPositionUpdate={handlePositionUpdate}
         />
         
         <InstancedShapeGroup
           type="torus"
           geometry={geometries.torus}
-          allObjectsData={objectsData.torus}
+          allObjectsData={objectsByType.torus}
           size={objectSize}
           linearDamping={linearDamping}
           angularDamping={angularDamping}
@@ -499,12 +567,13 @@ export default function JarModel({ isActive = true }) {
           sleepTimeLimit={sleepTimeLimit}
           friction={friction}
           restitution={restitution}
+          onPositionUpdate={handlePositionUpdate}
         />
         
         <InstancedShapeGroup
           type="torusKnot"
           geometry={geometries.torusKnot}
-          allObjectsData={objectsData.torusKnots}
+          allObjectsData={objectsByType.torusKnot}
           size={objectSize}
           linearDamping={linearDamping}
           angularDamping={angularDamping}
@@ -512,6 +581,7 @@ export default function JarModel({ isActive = true }) {
           sleepTimeLimit={sleepTimeLimit}
           friction={friction}
           restitution={restitution}
+          onPositionUpdate={handlePositionUpdate}
         />
       </Physics>
     </group>
