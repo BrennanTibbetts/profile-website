@@ -105,7 +105,10 @@ function App() {
 
             <main className="panel-right">
                 <div className="canvas-container">
-                    <Canvas camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}>
+                    <Canvas 
+                        camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}
+                        gl={{ powerPreference: "high-performance" }}
+                    >
                         <CameraController isMobile={isMobile} />
                         <Experience 
                             slideIndex={slideIndex} 

@@ -1,106 +1,204 @@
 import { Physics, useCylinder, useSphere, useBox, usePlane, useCompoundBody } from "@react-three/cannon";
 import { MeshTransmissionMaterial, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { useControls } from "leva";
 import * as THREE from "three";
+import useStore from "../stores/useStore";
 
-// Individual physics shapes
-function PhysicsSphere({ position, size, color, linearDamping, angularDamping, sleepSpeedLimit, sleepTimeLimit, friction, restitution }) {
-  const [ref] = useSphere(() => ({
+// Shared materials cache - created once and reused
+const COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#fd79a8'];
+const sharedMaterials = COLORS.map(color => 
+  new THREE.MeshStandardMaterial({ color })
+);
+
+// Shared geometries - created once and reused
+const sharedGeometries = {
+  sphere: null,
+  cube: null,
+  torus: null,
+  torusKnot: null,
+};
+
+function getSharedGeometries(size) {
+  if (!sharedGeometries.sphere || sharedGeometries._size !== size) {
+    sharedGeometries.sphere = new THREE.SphereGeometry(size, 16, 16);
+    sharedGeometries.cube = new THREE.BoxGeometry(size, size, size);
+    sharedGeometries.torus = new THREE.TorusGeometry(size * 0.5, size * 0.25, 12, 24);
+    sharedGeometries.torusKnot = new THREE.TorusKnotGeometry(size * 0.4, size * 0.15, 32, 8);
+    sharedGeometries._size = size;
+  }
+  return sharedGeometries;
+}
+
+// Physics body that updates an instance matrix
+function PhysicsBody({ type, position, size, instanceRef, instanceIndex, linearDamping, angularDamping, sleepSpeedLimit, sleepTimeLimit, friction, restitution }) {
+  const tempObject = useMemo(() => new THREE.Object3D(), []);
+  
+  const physicsArgs = useMemo(() => {
+    switch (type) {
+      case 'sphere': return [size];
+      case 'cube': return [size, size, size];
+      case 'torus': return [size * 0.7];
+      case 'torusKnot': return [size * 0.8];
+      default: return [size];
+    }
+  }, [type, size]);
+
+  const usePhysicsHook = type === 'cube' ? useBox : useSphere;
+  
+  const [ref, api] = usePhysicsHook(() => ({
     mass: 1,
     position,
-    args: [size],
+    args: physicsArgs,
     linearDamping,
     angularDamping,
     allowSleep: true,
     sleepSpeedLimit,
     sleepTimeLimit,
-    material: {
-      friction,
-      restitution,
-    },
+    material: { friction, restitution },
   }));
 
+  useEffect(() => {
+    if (!instanceRef.current) return;
+    
+    const unsubPosition = api.position.subscribe((p) => {
+      tempObject.position.set(p[0], p[1], p[2]);
+    });
+    
+    const unsubRotation = api.quaternion.subscribe((q) => {
+      tempObject.quaternion.set(q[0], q[1], q[2], q[3]);
+      tempObject.updateMatrix();
+      if (instanceRef.current) {
+        instanceRef.current.setMatrixAt(instanceIndex, tempObject.matrix);
+        instanceRef.current.instanceMatrix.needsUpdate = true;
+      }
+    });
+    
+    return () => {
+      unsubPosition();
+      unsubRotation();
+    };
+  }, [api, instanceRef, instanceIndex, tempObject]);
+
+  return null;
+}
+
+// Instanced mesh component for a specific shape and color
+function InstancedShapes({ 
+  type, 
+  geometry, 
+  material, 
+  objectsData, 
+  size,
+  linearDamping, 
+  angularDamping, 
+  sleepSpeedLimit, 
+  sleepTimeLimit, 
+  friction, 
+  restitution 
+}) {
+  const meshRef = useRef();
+  const count = objectsData.length;
+  
+  // Initialize instance positions
+  useEffect(() => {
+    if (!meshRef.current || count === 0) return;
+    
+    const tempObject = new THREE.Object3D();
+    objectsData.forEach((data, i) => {
+      tempObject.position.set(...data.position);
+      tempObject.updateMatrix();
+      meshRef.current.setMatrixAt(i, tempObject.matrix);
+    });
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  }, [objectsData, count]);
+
+  if (count === 0) return null;
+
   return (
-    <mesh ref={ref} castShadow>
-      <sphereGeometry args={[size, 16, 16]} />
-      <meshStandardMaterial color={color} />
-    </mesh>
+    <>
+      <instancedMesh 
+        ref={meshRef} 
+        args={[geometry, material, count]} 
+        castShadow
+        frustumCulled={false}
+      />
+      {objectsData.map((data, i) => (
+        <PhysicsBody
+          key={`${type}-${i}`}
+          type={type}
+          position={data.position}
+          size={size}
+          instanceRef={meshRef}
+          instanceIndex={i}
+          linearDamping={linearDamping}
+          angularDamping={angularDamping}
+          sleepSpeedLimit={sleepSpeedLimit}
+          sleepTimeLimit={sleepTimeLimit}
+          friction={friction}
+          restitution={restitution}
+        />
+      ))}
+    </>
   );
 }
 
-function PhysicsCube({ position, size, color, linearDamping, angularDamping, sleepSpeedLimit, sleepTimeLimit, friction, restitution }) {
-  const [ref] = useBox(() => ({
-    mass: 1,
-    position,
-    args: [size, size, size],
-    linearDamping,
-    angularDamping,
-    allowSleep: true,
-    sleepSpeedLimit,
-    sleepTimeLimit,
-    material: {
-      friction,
-      restitution,
-    },
-  }));
+// Groups instances by color for efficient rendering
+function InstancedShapeGroup({
+  type,
+  geometry,
+  allObjectsData,
+  size,
+  linearDamping,
+  angularDamping,
+  sleepSpeedLimit,
+  sleepTimeLimit,
+  friction,
+  restitution
+}) {
+  // Group objects by color index
+  const groupedByColor = useMemo(() => {
+    const groups = COLORS.map(() => []);
+    allObjectsData.forEach((data) => {
+      const colorIndex = COLORS.indexOf(data.color);
+      if (colorIndex !== -1) {
+        groups[colorIndex].push(data);
+      }
+    });
+    return groups;
+  }, [allObjectsData]);
 
   return (
-    <mesh ref={ref} castShadow>
-      <boxGeometry args={[size, size, size]} />
-      <meshStandardMaterial color={color} />
-    </mesh>
+    <>
+      {groupedByColor.map((objectsData, colorIndex) => (
+        objectsData.length > 0 && (
+          <InstancedShapes
+            key={`${type}-color-${colorIndex}`}
+            type={type}
+            geometry={geometry}
+            material={sharedMaterials[colorIndex]}
+            objectsData={objectsData}
+            size={size}
+            linearDamping={linearDamping}
+            angularDamping={angularDamping}
+            sleepSpeedLimit={sleepSpeedLimit}
+            sleepTimeLimit={sleepTimeLimit}
+            friction={friction}
+            restitution={restitution}
+          />
+        )
+      ))}
+    </>
   );
 }
 
-function PhysicsTorus({ position, size, color, linearDamping, angularDamping, sleepSpeedLimit, sleepTimeLimit, friction, restitution }) {
-  const [ref] = useSphere(() => ({
-    mass: 1,
-    position,
-    args: [size * 0.7], // Approximate with sphere for performance
-    linearDamping,
-    angularDamping,
-    allowSleep: true,
-    sleepSpeedLimit,
-    sleepTimeLimit,
-    material: {
-      friction,
-      restitution,
-    },
-  }));
-
-  return (
-    <mesh ref={ref} castShadow>
-      <torusGeometry args={[size * 0.5, size * 0.25, 12, 24]} />
-      <meshStandardMaterial color={color} />
-    </mesh>
-  );
-}
-
-function PhysicsTorusKnot({ position, size, color, linearDamping, angularDamping, sleepSpeedLimit, sleepTimeLimit, friction, restitution }) {
-  const [ref] = useSphere(() => ({
-    mass: 1,
-    position,
-    args: [size * 0.8], // Approximate with sphere for performance
-    linearDamping,
-    angularDamping,
-    allowSleep: true,
-    sleepSpeedLimit,
-    sleepTimeLimit,
-    material: {
-      friction,
-      restitution,
-    },
-  }));
-
-  return (
-    <mesh ref={ref} castShadow>
-      <torusKnotGeometry args={[size * 0.4, size * 0.15, 32, 8]} />
-      <meshStandardMaterial color={color} />
-    </mesh>
-  );
-}
+// Shared debug materials for colliders
+const debugMaterials = {
+  cyan: new THREE.MeshBasicMaterial({ color: "cyan", wireframe: true, opacity: 0.3, transparent: true }),
+  lime: new THREE.MeshBasicMaterial({ color: "lime", wireframe: true, opacity: 0.3, transparent: true }),
+  orange: new THREE.MeshBasicMaterial({ color: "orange", wireframe: true, opacity: 0.3, transparent: true }),
+};
 
 function WallSegment({ angle, radius, height, y, wallThickness, segmentWidth, visible, friction, restitution }) {
   const x = Math.cos(angle) * radius;
@@ -123,9 +221,9 @@ function WallSegment({ angle, radius, height, y, wallThickness, segmentWidth, vi
       position={[x, y, z]}
       rotation={[0, -angle + Math.PI / 2, 0]}
       visible={visible}
+      material={debugMaterials.cyan}
     >
       <boxGeometry args={[segmentWidth, height, wallThickness]} />
-      <meshBasicMaterial color="cyan" wireframe opacity={0.3} transparent />
     </mesh>
   );
 }
@@ -148,9 +246,8 @@ function JarCollider({ radius, height, y, visible, wallThickness, bottomThicknes
   return (
     <>
       {/* Bottom */}
-      <mesh ref={bottomRef} position={[0, y - height / 2, 0]} visible={visible}>
+      <mesh ref={bottomRef} position={[0, y - height / 2, 0]} visible={visible} material={debugMaterials.lime}>
         <cylinderGeometry args={[radius, radius, bottomThickness, 16]} />
-        <meshBasicMaterial color="lime" wireframe opacity={0.3} transparent />
       </mesh>
       
       {/* Walls */}
@@ -184,16 +281,21 @@ function GroundFloor({ y, size, visible, friction, restitution }) {
   }));
 
   return (
-    <mesh ref={ref} position={[0, y, 0]} visible={visible} receiveShadow>
+    <mesh ref={ref} position={[0, y, 0]} visible={visible} receiveShadow material={debugMaterials.orange}>
       <boxGeometry args={[size, 0.01, size]} />
-      <meshBasicMaterial color="orange" wireframe opacity={0.3} transparent />
     </mesh>
   );
 }
 
 export default function JarModel({ isActive = true }) {
   const jarRef = useRef();
+  const jarMeshRef = useRef();
   const { nodes, materials } = useGLTF('/assets/models/beaker/scene.gltf');
+  
+  // Tilt animation state
+  const isTilting = useStore((state) => state.isTilting);
+  const tiltStartTime = useStore((state) => state.tiltStartTime);
+  const [gravity, setGravity] = useState([0, -0.12, 0]);
 
   const glassProps = useControls("Jar Glass Material", {
     transmission: { value: 1, min: 0, max: 1, step: 0.01 },
@@ -256,52 +358,88 @@ export default function JarModel({ isActive = true }) {
         Math.sin(angle) * r
       ];
     };
-
-    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#fd79a8'];
     
     return {
       spheres: Array.from({ length: numSpheres }, (_, i) => ({
         position: generatePosition(),
-        color: colors[i % colors.length]
+        color: COLORS[i % COLORS.length]
       })),
       cubes: Array.from({ length: numCubes }, (_, i) => ({
         position: generatePosition(),
-        color: colors[(i + 1) % colors.length]
+        color: COLORS[(i + 1) % COLORS.length]
       })),
       torus: Array.from({ length: numTorus }, (_, i) => ({
         position: generatePosition(),
-        color: colors[(i + 2) % colors.length]
+        color: COLORS[(i + 2) % COLORS.length]
       })),
       torusKnots: Array.from({ length: numTorusKnots }, (_, i) => ({
         position: generatePosition(),
-        color: colors[(i + 3) % colors.length]
+        color: COLORS[(i + 3) % COLORS.length]
       }))
     };
   }, [numSpheres, numCubes, numTorus, numTorusKnots, colliderRadius, colliderHeight, colliderY, objectSize, spawnHeight]);
 
-  // Subtle animation when active
+  // Get shared geometries for the current object size
+  const geometries = useMemo(() => getSharedGeometries(objectSize), [objectSize]);
+
+  // Smooth tilt animation - affects gravity for physics and jar visual rotation
   useFrame((state) => {
     if (jarRef.current && isActive) {
       jarRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.05;
+    }
+    
+    if (isTilting) {
+      const elapsed = (Date.now() - tiltStartTime) / 1000; // seconds
+      const duration = 1.5;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Smooth oscillation that fades out
+      const tiltAmount = 0.5 * Math.sin(elapsed * 8) * (1 - progress);
+      const baseGravity = 0.12;
+      
+      // Tilt gravity vector
+      const gx = Math.sin(tiltAmount) * baseGravity;
+      const gy = -Math.cos(tiltAmount) * baseGravity;
+      
+      setGravity([gx, gy, 0]);
+      
+      // Visually tilt the jar mesh to match
+      if (jarMeshRef.current) {
+        jarMeshRef.current.rotation.z = tiltAmount * 0.5;
+      }
+    } else {
+      // Reset to default gravity
+      setGravity([0, -0.12, 0]);
+      if (jarMeshRef.current) {
+        jarMeshRef.current.rotation.z = 0;
+      }
     }
   });
 
   return (
     <group ref={jarRef} scale={jarScale}>
-      {/* Beaker geometry with glass material */}
-      <mesh
-        geometry={nodes.Object_10.geometry}
-        position={[0, 0, 0]}
-      >
-        <MeshTransmissionMaterial
-          {...glassProps}
-          opacity={1}
-          transparent={true}
-        />
-      </mesh>
+      {/* Beaker geometry with glass material - wrapped in group for shake */}
+      <group ref={jarMeshRef}>
+        <mesh
+          geometry={nodes.Object_10.geometry}
+          position={[0, 0, 0]}
+        >
+          <MeshTransmissionMaterial
+            {...glassProps}
+            opacity={1}
+            transparent={true}
+          />
+        </mesh>
+      </group>
 
       {/* Physics simulation */}
-      <Physics gravity={[0, -0.12, 0]} iterations={solverIterations} tolerance={0.001}>
+      <Physics 
+        gravity={gravity} 
+        iterations={solverIterations} 
+        tolerance={0.001}
+        stepSize={1/120}
+        maxSubSteps={10}
+      >
         <GroundFloor
           key={`ground-${groundY}-${groundSize}`}
           y={groundY}
@@ -323,66 +461,58 @@ export default function JarModel({ isActive = true }) {
           restitution={restitution}
         />
         
-        {/* Render all physics objects */}
-        {objectsData.spheres.map((data, i) => (
-          <PhysicsSphere 
-            key={`sphere-${i}`}
-            position={data.position}
-            size={objectSize}
-            color={data.color}
-            linearDamping={linearDamping}
-            angularDamping={angularDamping}
-            sleepSpeedLimit={sleepSpeedLimit}
-            sleepTimeLimit={sleepTimeLimit}
-            friction={friction}
-            restitution={restitution}
-          />
-        ))}
+        {/* Render instanced physics objects */}
+        <InstancedShapeGroup
+          type="sphere"
+          geometry={geometries.sphere}
+          allObjectsData={objectsData.spheres}
+          size={objectSize}
+          linearDamping={linearDamping}
+          angularDamping={angularDamping}
+          sleepSpeedLimit={sleepSpeedLimit}
+          sleepTimeLimit={sleepTimeLimit}
+          friction={friction}
+          restitution={restitution}
+        />
         
-        {objectsData.cubes.map((data, i) => (
-          <PhysicsCube 
-            key={`cube-${i}`}
-            position={data.position}
-            size={objectSize}
-            color={data.color}
-            linearDamping={linearDamping}
-            angularDamping={angularDamping}
-            sleepSpeedLimit={sleepSpeedLimit}
-            sleepTimeLimit={sleepTimeLimit}
-            friction={friction}
-            restitution={restitution}
-          />
-        ))}
+        <InstancedShapeGroup
+          type="cube"
+          geometry={geometries.cube}
+          allObjectsData={objectsData.cubes}
+          size={objectSize}
+          linearDamping={linearDamping}
+          angularDamping={angularDamping}
+          sleepSpeedLimit={sleepSpeedLimit}
+          sleepTimeLimit={sleepTimeLimit}
+          friction={friction}
+          restitution={restitution}
+        />
         
-        {objectsData.torus.map((data, i) => (
-          <PhysicsTorus 
-            key={`torus-${i}`}
-            position={data.position}
-            size={objectSize}
-            color={data.color}
-            linearDamping={linearDamping}
-            angularDamping={angularDamping}
-            sleepSpeedLimit={sleepSpeedLimit}
-            sleepTimeLimit={sleepTimeLimit}
-            friction={friction}
-            restitution={restitution}
-          />
-        ))}
+        <InstancedShapeGroup
+          type="torus"
+          geometry={geometries.torus}
+          allObjectsData={objectsData.torus}
+          size={objectSize}
+          linearDamping={linearDamping}
+          angularDamping={angularDamping}
+          sleepSpeedLimit={sleepSpeedLimit}
+          sleepTimeLimit={sleepTimeLimit}
+          friction={friction}
+          restitution={restitution}
+        />
         
-        {objectsData.torusKnots.map((data, i) => (
-          <PhysicsTorusKnot 
-            key={`torusknot-${i}`}
-            position={data.position}
-            size={objectSize}
-            color={data.color}
-            linearDamping={linearDamping}
-            angularDamping={angularDamping}
-            sleepSpeedLimit={sleepSpeedLimit}
-            sleepTimeLimit={sleepTimeLimit}
-            friction={friction}
-            restitution={restitution}
-          />
-        ))}
+        <InstancedShapeGroup
+          type="torusKnot"
+          geometry={geometries.torusKnot}
+          allObjectsData={objectsData.torusKnots}
+          size={objectSize}
+          linearDamping={linearDamping}
+          angularDamping={angularDamping}
+          sleepSpeedLimit={sleepSpeedLimit}
+          sleepTimeLimit={sleepTimeLimit}
+          friction={friction}
+          restitution={restitution}
+        />
       </Physics>
     </group>
   );
