@@ -1,0 +1,11 @@
+Model Information:
+* title:	Beaker Collection
+* source:	https://sketchfab.com/3d-models/beaker-collection-0ec8afce877345f1acd95ceb24b7c6f3
+* author:	3dLabWare (https://sketchfab.com/3dlabwaremodels)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Beaker Collection" (https://sketchfab.com/3d-models/beaker-collection-0ec8afce877345f1acd95ceb24b7c6f3) by 3dLabWare (https://sketchfab.com/3dlabwaremodels) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
