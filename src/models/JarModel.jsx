@@ -335,7 +335,7 @@ export default function JarModel({ isActive = true }) {
   // Tilt animation state
   const isTilting = useStore((state) => state.isTilting);
   const tiltStartTime = useStore((state) => state.tiltStartTime);
-  const [gravity, setGravity] = useState([0, -0.12, 0]);
+  const [gravity, setGravity] = useState([0, -0.25, 0]);
 
   const glassProps = useControls("Jar Glass Material", {
     transmission: { value: 1, min: 0, max: 1, step: 0.01 },
@@ -388,7 +388,7 @@ export default function JarModel({ isActive = true }) {
   const { jarScale, objectSize, maxObjects, spawnHeight, streamSpeed, streamSpacing, despawnY } = useControls("Jar Settings", {
     jarScale: { value: 20, min: 0.1, max: 30, step: 0.1 },
     objectSize: { value: 0.015, min: 0.005, max: 0.05, step: 0.001 },
-    spawnHeight: { value: 0.35, min: 0, max: 0.5, step: 0.01 },
+    spawnHeight: { value: 0.5, min: 0, max: 0.7, step: 0.01 },
     maxObjects: { value: 300, min: 10, max: 2000, step: 10, label: "Max Objects" },
     streamSpeed: { value: 10, min: 0.5, max: 30, step: 0.5, label: "Stream Speed (objects/sec)" },
     streamSpacing: { value: 0.1, min: 0.005, max: 0.1, step: 0.005, label: "Stream Spacing" },

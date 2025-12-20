@@ -20,7 +20,7 @@ export default function Experience({ slideIndex = 0, setSlideIndex, theme = "dar
   const props = useControls("Experience", {
     backgroundColor: "#000000",
     performance: false,
-    carouselRadius: 3.5,
+    carouselRadius: 5,
     environmentPreset: {
       value: "city",
       options: ["sunset", "dawn", "night", "warehouse", "forest", "apartment", "studio", "city", "park", "lobby"]

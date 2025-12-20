@@ -16,7 +16,7 @@ function CameraController({ isMobile }) {
     const { camera } = useThree();
     
     useEffect(() => {
-        camera.position.z = isMobile ? 16 : 12;
+        camera.position.z = isMobile ? 18 : 14;
     }, [isMobile, camera]);
     
     return null;
