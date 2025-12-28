@@ -99,3 +99,26 @@
   50% { opacity: 1; }
   100% { opacity: 0.5; }
 }
+
+@media (max-width: 768px) {
+  /* Position the click hint relative to the hints-wrapper so it appears higher on screen */
+  .hints-wrapper {
+    /* ensure wrapper remains positioned for absolute children */
+    position: relative;
+  }
+
+  .hints-wrapper .click-hint {
+    position: absolute;
+    top: -200px; /* pull the hint above the wrapper */
+    left: 0;
+    right: 0;
+    display: flex !important;
+    justify-content: center;
+    pointer-events: none; /* don't block interactions */
+    z-index: 50;
+  }
+
+  .hints-wrapper .click-hint .text {
+    pointer-events: auto; /* allow text selection/clicks if needed */
+  }
+}

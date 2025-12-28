@@ -1,6 +1,7 @@
 import { bioText } from '../data';
 import { projects } from '../projects';
 import ViewInfo from '../ViewInfo';
+import { renderParagraphsAsNodes } from '../utils/renderText';
 
 /**
  * Mobile overlay component for displaying project info or bio
@@ -26,9 +27,9 @@ export default function MobileOverlay({ type = 'info', isOpen, onClose, viewInde
         </div>
         <div className="mobile-info-body">
           {isBio ? (
-            <p className="bio">{bioText}</p>
+            <div>{renderParagraphsAsNodes(bioText, 'bio', 'bio')}</div>
           ) : (
-            <ViewInfo viewIndex={viewIndex} />
+            <ViewInfo viewIndex={viewIndex} showTitle={false} />
           )}
         </div>
       </div>

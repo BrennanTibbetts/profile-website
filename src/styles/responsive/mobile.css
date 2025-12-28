@@ -151,7 +151,7 @@
 
   .click-hint {
       position: absolute;
-      bottom: auto;
+      bottom: 0;
       left: 0;
       transform: none;
       gap: 4px;

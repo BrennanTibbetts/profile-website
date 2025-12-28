@@ -1,1 +1,1 @@
-export const bioText = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus, enim. Incidunt dolore autem, sapiente laudantium natus rem! Maiores expedita cum consequatur rem earum amet aut quod optio voluptates. Sint, temporibus?";
+export const bioText = "I am a software engineer with a Computer Science and Engineering degree from The Ohio State University. I work across iOS, cloud, and web technologies and gravitate toward projects with a strong emphasis on user experience."

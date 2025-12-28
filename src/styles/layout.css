@@ -97,6 +97,49 @@
   margin: 0;
 }
 
+/* inline attribute highlight used for ==marked== text in desk view */
+.panel-left .view-info .inline-attr {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8e8e8;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
+  font-size: 0.9em;
+  margin: 0 4px;
+}
+
+/* skills (yellow) */
+.panel-left .view-info .inline-skill {
+  display: inline-block;
+  background: rgba(255, 223, 77, 0.08);
+  color: #ffd54f;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
+  font-size: 0.9em;
+  margin: 0 4px;
+}
+
+/* frameworks (purple) */
+.panel-left .view-info .inline-framework {
+  display: inline-block;
+  background: rgba(255, 223, 77, 0.08);
+  color: #ffd54f;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
+  font-size: 0.9em;
+  margin: 0 4px;
+}
+
+/* light mode variant for desk view */
+body.light .panel-left .view-info .inline-skill,
+body.light .panel-left .view-info .inline-framework {
+  background: rgba(255, 223, 77, 0.06);
+  color: #8b6a00;
+}
+
 .panel-right {
   flex: 1 1 auto;
   position: relative;

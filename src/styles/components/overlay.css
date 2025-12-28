@@ -85,3 +85,47 @@
   font-family: inherit;
   backdrop-filter: blur(4px);
 }
+
+/* inline attribute highlight used for ==marked== text */
+.inline-attr {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f1f1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
+  font-size: 0.9em;
+  margin: 0 4px;
+}
+
+/* skills (yellow) */
+.inline-skill {
+  display: inline-block;
+  background: rgba(255, 223, 77, 0.12);
+  color: #ffd54f;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
+  font-size: 0.9em;
+  margin: 0 4px;
+}
+
+/* frameworks (purple) */
+/* frameworks: use same yellow style as skills (user prefers yellow) */
+.inline-framework {
+  display: inline-block;
+  background: rgba(255, 223, 77, 0.12);
+  color: #ffd54f;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
+  font-size: 0.9em;
+  margin: 0 4px;
+}
+
+/* light mode variant for mobile overlay */
+body.light .mobile-info-content .inline-skill,
+body.light .mobile-info-content .inline-framework {
+  background: rgba(255, 223, 77, 0.08);
+  color: #b8860b;
+}
