@@ -26,7 +26,7 @@ export default function Header({ onHeaderClick }) {
       >
         <div className="info-indicator">i</div>
         <h1 className="title">Brennan Tibbetts</h1>
-        <p className="subtitle">3D web developer · Interactive experiences</p>
+        <p className="subtitle">iOS & Cloud Software Engineer</p>
         <p className="bio">{bioText}</p>
         <hr className="divider" />
       </div>
