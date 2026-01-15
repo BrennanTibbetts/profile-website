@@ -201,7 +201,7 @@
 
   .hints-wrapper .click-hint {
     position: absolute;
-    top: -100px; /* pull the hint above the wrapper */
+    top: -80px; /* pull the hint above the wrapper */
     left: 0;
     right: 0;
     display: flex !important;
