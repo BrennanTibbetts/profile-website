@@ -48,7 +48,8 @@ body.light .social-btn img {
 
 body.light .social-btn,
 body.light .theme-toggle,
-body.light .view-btn {
+body.light .view-btn,
+body.light .resume-btn {
   background: #ffffff;
   border-color: rgba(0, 0, 0, 0.12);
   color: #111;
