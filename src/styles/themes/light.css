@@ -37,22 +37,51 @@ body.light .click-hint {
     text-shadow: 0 1px 2px rgba(255,255,255,0.8);
 }
 
-body.light .btn {
-  color: #111;
-  border-color: rgba(0,0,0,0.08);
-}
-
 body.light .social-btn img {
   filter: invert(0);
 }
 
-body.light .social-btn,
-body.light .theme-toggle,
-body.light .view-btn,
-body.light .resume-btn {
-  background: #ffffff;
+body.light :is(
+  .btn,
+  .site-nav-btn,
+  .social-btn,
+  .theme-toggle,
+  .view-btn,
+  .resume-btn,
+  .blog-back-link,
+  .close-info-btn,
+  .close-resume,
+  .header-back-btn
+) {
+  background: rgba(255, 255, 255, 0.9);
   border-color: rgba(0, 0, 0, 0.12);
   color: #111;
+}
+
+body.light :is(
+  .site-top-nav,
+  .site-social-row,
+  .site-action-row,
+  .actions-buttons,
+  .actions-theme-rail,
+  .view-controls
+) :is(.site-nav-btn, .social-btn, .theme-toggle, .view-btn, .resume-btn, .btn) {
+  background: transparent;
+  border-color: transparent;
+}
+
+body.light :is(
+  .site-top-nav,
+  .site-social-row,
+  .site-action-row,
+  .actions-buttons,
+  .actions-theme-rail,
+  .view-controls
+) .site-nav-btn.is-active {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #666;
+  font-style: italic;
 }
 
 body.light .view-controls {
@@ -74,18 +103,12 @@ body.light .mobile-info-header {
 
 body.light .close-info-btn {
   color: #111;
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 body.light .close-info-btn:hover {
-    background: rgba(0,0,0,0.05);
-    border-color: rgba(0, 0, 0, 0.3);
-}
-
-body.light .mobile-info-btn {
-    background: rgba(255, 255, 255, 0.8);
-    color: #111;
-    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(0,0,0,0.06);
+    border-color: rgba(0, 0, 0, 0.22);
 }
 
 /* Light theme landscape warning */

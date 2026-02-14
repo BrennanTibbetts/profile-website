@@ -5,10 +5,28 @@
   padding-bottom: 0;
 }
 
-.panel-left .actions-buttons {
+.panel-left .actions-rails {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-top: 12px;
+  width: 100%;
+}
+
+.panel-left .actions-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: auto;
+}
+
+.panel-left .actions-theme-rail {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .btn {
@@ -166,10 +184,6 @@
   font-weight: 600;
   cursor: pointer;
   gap: 8px;
-}
-
-.panel-left .actions .theme-toggle {
-  margin-left: auto;
 }
 
 .hints-wrapper {

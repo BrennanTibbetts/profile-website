@@ -1,5 +1,5 @@
 import MarkdownRenderer from "../blog/MarkdownRenderer";
-import { formatPostDate, getPostBySlug, posts } from "../blog/posts";
+import { formatPostDate, getPostBySlug, getPosts } from "../blog/posts";
 import AppLink from "../components/AppLink";
 import SiteTopNav from "../components/SiteTopNav";
 import SocialThemeRow from "../components/SocialThemeRow";
@@ -7,14 +7,20 @@ import SocialThemeRow from "../components/SocialThemeRow";
 function BlogTopBar({ pathname, navigate, theme, setTheme }) {
   return (
     <header className="blog-topbar">
-      <SiteTopNav pathname={pathname} navigate={navigate} showHome showBlog={false} />
+      <SiteTopNav pathname={pathname} navigate={navigate} />
       <SocialThemeRow theme={theme} setTheme={setTheme} />
     </header>
   );
 }
 
-export function BlogIndexPage({ pathname, navigate, theme, setTheme }) {
-  const [featuredPost, ...olderPosts] = posts;
+function getPostPath(post) {
+  const slugPart = encodeURIComponent(post.slug);
+  return post.hidden ? `/blog/hidden/${slugPart}` : `/blog/${slugPart}`;
+}
+
+export function BlogIndexPage({ pathname, navigate, theme, setTheme, includeHidden = false }) {
+  const indexPosts = getPosts({ includeHidden });
+  const [featuredPost, ...olderPosts] = indexPosts;
 
   return (
     <div className="site-shell blog-shell">
@@ -31,7 +37,7 @@ export function BlogIndexPage({ pathname, navigate, theme, setTheme }) {
           <section className="blog-featured-wrapper">
             <h2 className="blog-section-label">Latest</h2>
             <AppLink
-              to={`/blog/${encodeURIComponent(featuredPost.slug)}`}
+              to={getPostPath(featuredPost)}
               navigate={navigate}
               className="blog-featured-card"
             >
@@ -50,7 +56,7 @@ export function BlogIndexPage({ pathname, navigate, theme, setTheme }) {
               {olderPosts.map((post) => (
                 <AppLink
                   key={post.slug}
-                  to={`/blog/${encodeURIComponent(post.slug)}`}
+                  to={getPostPath(post)}
                   navigate={navigate}
                   className="blog-list-item"
                 >
@@ -71,6 +77,7 @@ export function BlogIndexPage({ pathname, navigate, theme, setTheme }) {
 
 export function BlogPostPage({ pathname, slug, navigate, theme, setTheme, allowHidden = false }) {
   const post = getPostBySlug(slug, { includeHidden: allowHidden });
+  const backPath = allowHidden ? "/blog/hidden" : "/blog";
 
   if (!post) {
     return (
@@ -81,8 +88,8 @@ export function BlogPostPage({ pathname, slug, navigate, theme, setTheme, allowH
             <h1>Post Not Found</h1>
             <p>That blog URL does not match an existing markdown file.</p>
           </header>
-          <AppLink to="/blog" navigate={navigate} className="blog-back-link">
-            Back to Blog
+          <AppLink to={backPath} navigate={navigate} className="blog-back-link">
+            Back
           </AppLink>
         </main>
       </div>
@@ -93,8 +100,8 @@ export function BlogPostPage({ pathname, slug, navigate, theme, setTheme, allowH
     <div className="site-shell blog-shell">
       <BlogTopBar pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />
       <main className="blog-main">
-        <AppLink to="/blog" navigate={navigate} className="blog-back-link">
-          Back to Blog
+        <AppLink to={backPath} navigate={navigate} className="blog-back-link">
+          Back
         </AppLink>
 
         <article className="blog-post">

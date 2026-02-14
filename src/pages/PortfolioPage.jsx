@@ -60,14 +60,18 @@ export default function PortfolioPage({ theme, setTheme, pathname, navigate }) {
       <MobileOverlay type="bio" isOpen={showBio} onClose={() => setShowBio(false)} />
 
       <aside className="panel-left">
-        <SiteTopNav
-          pathname={pathname}
-          navigate={navigate}
-          showHome
-          showPortfolio={false}
-          className="site-top-nav-inline"
+        {!isMobile ? (
+          <SiteTopNav
+            pathname={pathname}
+            navigate={navigate}
+            className="site-top-nav-inline"
+          />
+        ) : null}
+        <Header
+          onBack={() => navigate("/")}
+          onHeaderClick={isMobile ? () => setShowBio(true) : undefined}
+          showBack={isMobile}
         />
-        <Header onHeaderClick={() => isMobile && setShowBio(true)} />
         <div className="desktop-view-info">
           <ViewInfo viewIndex={viewIndex} />
         </div>
@@ -81,15 +85,17 @@ export default function PortfolioPage({ theme, setTheme, pathname, navigate }) {
         />
       </aside>
 
-      <button
-        className="mobile-info-btn"
-        onClick={() => {
-          setShowInfo(true);
-          markViewAsClicked(viewIndex);
-        }}
-      >
-        Learn more
-      </button>
+      {isMobile ? (
+        <button
+          className="mobile-info-btn"
+          onClick={() => {
+            setShowInfo(true);
+            markViewAsClicked(viewIndex);
+          }}
+        >
+          Learn more
+        </button>
+      ) : null}
 
       <main className="panel-right">
         <div className="canvas-container">

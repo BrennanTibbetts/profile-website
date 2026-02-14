@@ -6,7 +6,7 @@ import { Environment } from "@react-three/drei";
 import Lights, { modelLightingPresets } from "./Lights.jsx";
 import { AWSModel } from "./models/AWSModel.jsx";
 import { PhoneModel } from "./models/PhoneModel.jsx";
-import JarModel from "./models/JarModel.jsx";
+import { CubeModel } from "./models/CubeModel.jsx";
 import { projects } from "./projects.js";
 import { usePointerDrag } from "./hooks/usePointerDrag.js";
 import { useCarouselRotation } from "./hooks/useCarouselRotation.js";
@@ -67,7 +67,7 @@ export default function Experience({ slideIndex = 0, setSlideIndex, theme = "dar
           <AWSModel scale={0.3} theme={theme} isActive={viewIndex === 1} />
         </group>
         <group position={getPosition(2, 0)} rotation={getRotation(2)}>
-          <JarModel isActive={viewIndex === 2} />
+          <CubeModel scale={1.2} theme={theme} isActive={viewIndex === 2} />
         </group>
       </group>
     </>

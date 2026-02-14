@@ -7,6 +7,8 @@ import fontData from "three/examples/fonts/helvetiker_bold.typeface.json";
 
 const FONT_PATH = "/fonts/helvetiker_bold.typeface.json";
 const ASCII_CHARACTER_SET = " .:-=+*#%@";
+const ASCII_RESOLUTION_DESKTOP = 0.21;
+const ASCII_RESOLUTION_MOBILE = 0.36;
 const MOBILE_BREAKPOINT = 768;
 const MOBILE_HINT_STORAGE_KEY = "homeAsciiTouchHintSeen";
 
@@ -26,7 +28,7 @@ function NameText3D({ isMobileHintActive, pointerRef }) {
     return loader.parse(fontData);
   }, []);
 
-  const { letterLayout, maxLineWidth } = useMemo(() => {
+  const { letterLayout, layoutWidth } = useMemo(() => {
     const geometryOptions = {
       font: parsedFont,
       size: fontSize,
@@ -37,7 +39,7 @@ function NameText3D({ isMobileHintActive, pointerRef }) {
 
     let widestLine = 0;
 
-    const letters = lines.flatMap((line, lineIndex) => {
+    const rawLetters = lines.flatMap((line, lineIndex) => {
       const characters = line.split("");
       const baseY = (lines.length - 1) * 0.5 * lineGap - lineIndex * lineGap;
       const direction = lineIndex === 0 ? 1 : -1;
@@ -52,7 +54,7 @@ function NameText3D({ isMobileHintActive, pointerRef }) {
         const width = Math.max(maxX - minX, fontSize * 0.25);
 
         geometry.dispose();
-        return { minX, maxY, minY, width };
+        return { minX, maxX, maxY, minY, width };
       });
 
       const lineWidth =
@@ -74,21 +76,55 @@ function NameText3D({ isMobileHintActive, pointerRef }) {
           baseY,
           direction,
           influenceY,
+          minX: metric.minX,
+          maxX: metric.maxX,
+          minY: metric.minY,
+          maxY: metric.maxY,
         };
       });
     });
 
-    return { letterLayout: letters, maxLineWidth: widestLine };
+    const bounds = rawLetters.reduce(
+      (acc, letter) => {
+        const left = letter.baseX + letter.minX;
+        const right = letter.baseX + letter.maxX;
+        const bottom = letter.baseY + letter.minY;
+        const top = letter.baseY + letter.maxY;
+
+        return {
+          minX: Math.min(acc.minX, left),
+          maxX: Math.max(acc.maxX, right),
+          minY: Math.min(acc.minY, bottom),
+          maxY: Math.max(acc.maxY, top),
+        };
+      },
+      { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+    );
+
+    const centerX = Number.isFinite(bounds.minX) && Number.isFinite(bounds.maxX) ? (bounds.minX + bounds.maxX) * 0.5 : 0;
+    const centerY = Number.isFinite(bounds.minY) && Number.isFinite(bounds.maxY) ? (bounds.minY + bounds.maxY) * 0.5 : 0;
+
+    const centeredLetters = rawLetters.map((letter) => ({
+      ...letter,
+      baseX: letter.baseX - centerX,
+      baseY: letter.baseY - centerY,
+      influenceY: letter.influenceY - centerY,
+    }));
+
+    const measuredWidth =
+      Number.isFinite(bounds.minX) && Number.isFinite(bounds.maxX) ? Math.max(bounds.maxX - bounds.minX, 0) : widestLine;
+
+    return { letterLayout: centeredLetters, layoutWidth: measuredWidth };
   }, [lineGap, fontSize, parsedFont, textHeight, tracking]);
 
   const layoutScale = useMemo(() => {
     const safeWidth = viewport.width * (isMobile ? 0.94 : 0.9);
-    if (maxLineWidth <= 0) {
+    if (layoutWidth <= 0) {
       return 1;
     }
 
-    return Math.min(1, safeWidth / maxLineWidth);
-  }, [isMobile, maxLineWidth, viewport.width]);
+    return Math.min(1, safeWidth / layoutWidth);
+  }, [isMobile, layoutWidth, viewport.width]);
 
   const letterRefs = useRef([]);
 
@@ -100,14 +136,14 @@ function NameText3D({ isMobileHintActive, pointerRef }) {
     const pointer = pointerRef.current;
     const demoEnabled = isMobile && isMobileHintActive && !pointer.active;
     const demoSeconds = (performance.now() - (pointer.demoStartedAt || 0)) * 0.001;
-    const demoTargetX = demoEnabled ? Math.sin(demoSeconds * 2.1) * 0.22 : 0;
+    const demoTargetX = 0;
     const demoTargetY = demoEnabled ? Math.cos(demoSeconds * 1.7) * 0.14 : 0;
     const targetX = pointer.active ? pointer.targetX : demoTargetX;
     const targetY = pointer.active ? pointer.targetY : demoTargetY;
     pointer.x += (targetX - pointer.x) * 0.08;
     pointer.y += (targetY - pointer.y) * 0.08;
 
-    const baseGroupY = isMobile ? 0.55 : 0.2;
+    const baseGroupY = isMobile ? 0 : 0.2;
 
     if (rootRef.current) {
       const targetRotX = pointer.y * 0.075;
@@ -178,6 +214,7 @@ function NameText3D({ isMobileHintActive, pointerRef }) {
 
 export default function NameAsciiScene({ theme = "dark" }) {
   const isLight = theme === "light";
+  const containerRef = useRef(null);
   const pointerRef = useRef({
     x: 0,
     y: 0,
@@ -188,6 +225,7 @@ export default function NameAsciiScene({ theme = "dark" }) {
   });
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [showMobileHint, setShowMobileHint] = useState(false);
+  const asciiResolution = isMobileViewport ? ASCII_RESOLUTION_MOBILE : ASCII_RESOLUTION_DESKTOP;
 
   useEffect(() => {
     const updateViewportState = () => {
@@ -203,6 +241,13 @@ export default function NameAsciiScene({ theme = "dark" }) {
   }, []);
 
   useEffect(() => {
+    pointerRef.current.demoStartedAt = performance.now();
+    pointerRef.current.x = 0;
+    pointerRef.current.y = 0;
+    pointerRef.current.targetX = 0;
+    pointerRef.current.targetY = 0;
+    pointerRef.current.active = false;
+
     if (!isMobileViewport) {
       setShowMobileHint(false);
       return;
@@ -220,7 +265,6 @@ export default function NameAsciiScene({ theme = "dark" }) {
       return;
     }
 
-    pointerRef.current.demoStartedAt = performance.now();
     setShowMobileHint(true);
   }, [isMobileViewport]);
 
@@ -239,15 +283,29 @@ export default function NameAsciiScene({ theme = "dark" }) {
     };
 
     const updatePointer = (clientX, clientY) => {
-      const width = window.innerWidth || 1;
-      const height = window.innerHeight || 1;
+      const bounds = containerRef.current?.getBoundingClientRect();
 
-      pointerRef.current.targetX = (clientX / width) * 2 - 1;
-      pointerRef.current.targetY = 1 - (clientY / height) * 2;
+      if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+        const width = window.innerWidth || 1;
+        const height = window.innerHeight || 1;
+        const normalizedX = Math.min(1, Math.max(0, clientX / width));
+        const normalizedY = Math.min(1, Math.max(0, clientY / height));
+        pointerRef.current.targetX = normalizedX * 2 - 1;
+        pointerRef.current.targetY = 1 - normalizedY * 2;
+      } else {
+        const localX = Math.min(1, Math.max(0, (clientX - bounds.left) / bounds.width));
+        const localY = Math.min(1, Math.max(0, (clientY - bounds.top) / bounds.height));
+        pointerRef.current.targetX = localX * 2 - 1;
+        pointerRef.current.targetY = 1 - localY * 2;
+      }
+
       pointerRef.current.active = true;
     };
 
     const handleMouseMove = (event) => {
+      if (isMobileViewport) {
+        return;
+      }
       updatePointer(event.clientX, event.clientY);
     };
 
@@ -279,27 +337,31 @@ export default function NameAsciiScene({ theme = "dark" }) {
       pointerRef.current.active = false;
     };
 
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    if (!isMobileViewport) {
+      window.addEventListener("mousemove", handleMouseMove, { passive: true });
+      document.addEventListener("mouseleave", handlePointerReset);
+    }
     window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", handlePointerReset, { passive: true });
     window.addEventListener("touchcancel", handlePointerReset, { passive: true });
     window.addEventListener("blur", handlePointerReset);
-    document.addEventListener("mouseleave", handlePointerReset);
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
+      if (!isMobileViewport) {
+        window.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseleave", handlePointerReset);
+      }
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handlePointerReset);
       window.removeEventListener("touchcancel", handlePointerReset);
       window.removeEventListener("blur", handlePointerReset);
-      document.removeEventListener("mouseleave", handlePointerReset);
     };
   }, [isMobileViewport, showMobileHint]);
 
   return (
-    <div className="home-scene-canvas" aria-hidden="true">
+    <div ref={containerRef} className="home-scene-canvas" aria-hidden="true">
       <Canvas camera={{ position: [0, 0, 10.2], fov: 36 }} dpr={[1, 1.5]} gl={{ antialias: false }}>
         <color attach="background" args={["#000000"]} />
         <ambientLight intensity={0.58} />
@@ -313,7 +375,7 @@ export default function NameAsciiScene({ theme = "dark" }) {
           bgColor={isLight ? "#efefef" : "black"}
           characters={ASCII_CHARACTER_SET}
           invert
-          resolution={0.21}
+          resolution={asciiResolution}
         />
       </Canvas>
       {isMobileViewport && showMobileHint ? <div className="home-scene-hint">Drag the text</div> : null}

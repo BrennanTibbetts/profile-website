@@ -4,11 +4,23 @@
   position: relative;
 }
 
+.header-top-row {
+  display: block;
+}
+
+.header-top-row .left-top {
+  width: 100%;
+}
+
 .info-indicator {
   display: none;
 }
 
 .header-hint {
+  display: none;
+}
+
+.header-back-btn {
   display: none;
 }
 

@@ -19,7 +19,7 @@ function isActive(pathname, target) {
 export default function SiteTopNav({
   pathname,
   navigate,
-  showHome = false,
+  showHome = true,
   showPortfolio = true,
   showBlog = true,
   className = "",

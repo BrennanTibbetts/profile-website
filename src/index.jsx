@@ -29,7 +29,11 @@ function parseRoute(pathname) {
   }
 
   if (normalizedPath === "/blog") {
-    return { type: "blog-index" };
+    return { type: "blog-index", includeHidden: false };
+  }
+
+  if (normalizedPath === "/blog/hidden") {
+    return { type: "blog-index", includeHidden: true };
   }
 
   if (normalizedPath.startsWith("/blog/hidden/")) {
@@ -117,7 +121,15 @@ function App() {
   }
 
   if (route.type === "blog-index") {
-    return <BlogIndexPage pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />;
+    return (
+      <BlogIndexPage
+        pathname={pathname}
+        navigate={navigate}
+        theme={theme}
+        setTheme={setTheme}
+        includeHidden={route.includeHidden}
+      />
+    );
   }
 
   if (route.type === "blog-post") {

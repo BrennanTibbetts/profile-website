@@ -108,6 +108,10 @@ const allPosts = Object.entries(markdownFiles)
 
 export const posts = allPosts.filter((post) => !post.hidden);
 
+export function getPosts({ includeHidden = false } = {}) {
+  return includeHidden ? allPosts : posts;
+}
+
 export function getPostBySlug(slug, { includeHidden = false } = {}) {
   return allPosts.find((post) => post.slug === slug && (includeHidden || !post.hidden));
 }
