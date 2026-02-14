@@ -37,6 +37,15 @@ function parseFrontmatter(rawFile) {
   return { frontmatter, content };
 }
 
+function parseBoolean(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes";
+}
+
 function toSlug(filePath) {
   const fileName = filePath.split("/").pop() ?? "";
   return fileName.replace(/\.md$/i, "");
@@ -80,7 +89,7 @@ function createExcerpt(markdownContent) {
   return `${plainText.slice(0, 220).trimEnd()}...`;
 }
 
-export const posts = Object.entries(markdownFiles)
+const allPosts = Object.entries(markdownFiles)
   .map(([filePath, rawFile]) => {
     const { frontmatter, content } = parseFrontmatter(rawFile);
     const slug = toSlug(filePath);
@@ -92,12 +101,15 @@ export const posts = Object.entries(markdownFiles)
       dateISO,
       content,
       excerpt: createExcerpt(content),
+      hidden: parseBoolean(frontmatter.hidden),
     };
   })
   .sort((left, right) => new Date(right.dateISO).getTime() - new Date(left.dateISO).getTime());
 
-export function getPostBySlug(slug) {
-  return posts.find((post) => post.slug === slug);
+export const posts = allPosts.filter((post) => !post.hidden);
+
+export function getPostBySlug(slug, { includeHidden = false } = {}) {
+  return allPosts.find((post) => post.slug === slug && (includeHidden || !post.hidden));
 }
 
 export function formatPostDate(dateISO) {

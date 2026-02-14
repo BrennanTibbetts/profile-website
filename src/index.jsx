@@ -32,12 +32,24 @@ function parseRoute(pathname) {
     return { type: "blog-index" };
   }
 
+  if (normalizedPath.startsWith("/blog/hidden/")) {
+    const slugSegment = normalizedPath.slice("/blog/hidden/".length).split("/")[0];
+
+    if (slugSegment) {
+      try {
+        return { type: "blog-post", slug: decodeURIComponent(slugSegment), allowHidden: true };
+      } catch {
+        return { type: "not-found" };
+      }
+    }
+  }
+
   if (normalizedPath.startsWith("/blog/")) {
     const slugSegment = normalizedPath.slice("/blog/".length).split("/")[0];
 
     if (slugSegment) {
       try {
-        return { type: "blog-post", slug: decodeURIComponent(slugSegment) };
+        return { type: "blog-post", slug: decodeURIComponent(slugSegment), allowHidden: false };
       } catch {
         return { type: "not-found" };
       }
@@ -109,7 +121,16 @@ function App() {
   }
 
   if (route.type === "blog-post") {
-    return <BlogPostPage pathname={pathname} slug={route.slug} navigate={navigate} theme={theme} setTheme={setTheme} />;
+    return (
+      <BlogPostPage
+        pathname={pathname}
+        slug={route.slug}
+        navigate={navigate}
+        theme={theme}
+        setTheme={setTheme}
+        allowHidden={route.allowHidden}
+      />
+    );
   }
 
   if (route.type === "home") {

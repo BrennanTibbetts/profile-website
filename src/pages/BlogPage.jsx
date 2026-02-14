@@ -4,19 +4,22 @@ import AppLink from "../components/AppLink";
 import SiteTopNav from "../components/SiteTopNav";
 import SocialThemeRow from "../components/SocialThemeRow";
 
+function BlogTopBar({ pathname, navigate, theme, setTheme }) {
+  return (
+    <header className="blog-topbar">
+      <SiteTopNav pathname={pathname} navigate={navigate} showHome showBlog={false} />
+      <SocialThemeRow theme={theme} setTheme={setTheme} />
+    </header>
+  );
+}
+
 export function BlogIndexPage({ pathname, navigate, theme, setTheme }) {
   const [featuredPost, ...olderPosts] = posts;
 
   return (
     <div className="site-shell blog-shell">
-      <SiteTopNav pathname={pathname} navigate={navigate} showHome />
+      <BlogTopBar pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />
       <main className="blog-main">
-        <header className="blog-page-header">
-          <h1>Blog</h1>
-          <p>Markdown posts from `/content/blog`.</p>
-        </header>
-        <SocialThemeRow theme={theme} setTheme={setTheme} className="blog-social-row" />
-
         {!featuredPost && (
           <section className="blog-empty-state">
             <h2>No posts yet</h2>
@@ -66,19 +69,18 @@ export function BlogIndexPage({ pathname, navigate, theme, setTheme }) {
   );
 }
 
-export function BlogPostPage({ pathname, slug, navigate, theme, setTheme }) {
-  const post = getPostBySlug(slug);
+export function BlogPostPage({ pathname, slug, navigate, theme, setTheme, allowHidden = false }) {
+  const post = getPostBySlug(slug, { includeHidden: allowHidden });
 
   if (!post) {
     return (
       <div className="site-shell blog-shell">
-        <SiteTopNav pathname={pathname} navigate={navigate} showHome />
+        <BlogTopBar pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />
         <main className="blog-main">
           <header className="blog-page-header">
             <h1>Post Not Found</h1>
             <p>That blog URL does not match an existing markdown file.</p>
           </header>
-          <SocialThemeRow theme={theme} setTheme={setTheme} className="blog-social-row" />
           <AppLink to="/blog" navigate={navigate} className="blog-back-link">
             Back to Blog
           </AppLink>
@@ -89,9 +91,8 @@ export function BlogPostPage({ pathname, slug, navigate, theme, setTheme }) {
 
   return (
     <div className="site-shell blog-shell">
-      <SiteTopNav pathname={pathname} navigate={navigate} showHome />
+      <BlogTopBar pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />
       <main className="blog-main">
-        <SocialThemeRow theme={theme} setTheme={setTheme} className="blog-social-row" />
         <AppLink to="/blog" navigate={navigate} className="blog-back-link">
           Back to Blog
         </AppLink>

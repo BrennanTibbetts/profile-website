@@ -72,6 +72,44 @@
   overflow-y: auto;
 }
 
+.site-home-scene {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-scene-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.home-scene-canvas canvas {
+  display: block;
+}
+
+.home-topbar {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.home-topbar .site-top-nav {
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+}
+
+.home-topbar .site-social-row {
+  justify-content: flex-end;
+}
+
 .site-name {
   margin: 0;
   font-size: clamp(40px, 9vw, 84px);
@@ -112,8 +150,31 @@
   width: min(920px, 100%);
   flex: 1 1 auto;
   margin: 0 auto;
-  padding: 100px 24px 46px;
+  padding: 112px 24px 46px;
   overflow-y: auto;
+}
+
+.blog-topbar {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.blog-topbar .site-top-nav {
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+}
+
+.blog-topbar .site-social-row {
+  justify-content: flex-end;
 }
 
 .blog-page-header h1,
@@ -130,11 +191,6 @@
   margin-top: 10px;
   color: #b7b7b7;
   font-size: 14px;
-}
-
-.blog-social-row {
-  margin-top: 16px;
-  justify-content: flex-start;
 }
 
 .blog-empty-state {
@@ -447,12 +503,48 @@ body.light .blog-code-block {
     padding-top: 88px;
   }
 
-  .blog-main {
-    padding: 84px 16px 34px;
+  .home-topbar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
   }
 
-  .blog-social-row {
-    justify-content: center;
+  .home-topbar .site-top-nav {
+    width: auto;
+    left: auto;
+    top: auto;
+    transform: none;
+    justify-content: flex-start;
+  }
+
+  .home-topbar .site-social-row {
+    justify-content: flex-start;
+  }
+
+  .blog-main {
+    padding: 132px 16px 34px;
+  }
+
+  .blog-topbar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .blog-topbar .site-top-nav {
+    width: auto;
+    left: auto;
+    top: auto;
+    transform: none;
+    justify-content: flex-start;
+  }
+
+  .blog-topbar .site-social-row {
+    justify-content: flex-start;
   }
 
   .blog-featured-card,
