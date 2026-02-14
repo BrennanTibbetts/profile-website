@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { AsciiRenderer, Text3D } from "@react-three/drei";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
@@ -7,11 +7,13 @@ import fontData from "three/examples/fonts/helvetiker_bold.typeface.json";
 
 const FONT_PATH = "/fonts/helvetiker_bold.typeface.json";
 const ASCII_CHARACTER_SET = " .:-=+*#%@";
+const MOBILE_BREAKPOINT = 768;
+const MOBILE_HINT_STORAGE_KEY = "homeAsciiTouchHintSeen";
 
-function NameText3D({ pointerRef }) {
+function NameText3D({ isMobileHintActive, pointerRef }) {
   const rootRef = useRef();
   const { size, viewport } = useThree();
-  const isMobile = size.width <= 768;
+  const isMobile = size.width <= MOBILE_BREAKPOINT;
 
   const lines = ["Brennan", "Tibbetts"];
   const fontSize = isMobile ? 0.84 : 1.18;
@@ -96,8 +98,12 @@ function NameText3D({ pointerRef }) {
 
   useFrame(() => {
     const pointer = pointerRef.current;
-    const targetX = pointer.active ? pointer.targetX : 0;
-    const targetY = pointer.active ? pointer.targetY : 0;
+    const demoEnabled = isMobile && isMobileHintActive && !pointer.active;
+    const demoSeconds = (performance.now() - (pointer.demoStartedAt || 0)) * 0.001;
+    const demoTargetX = demoEnabled ? Math.sin(demoSeconds * 2.1) * 0.22 : 0;
+    const demoTargetY = demoEnabled ? Math.cos(demoSeconds * 1.7) * 0.14 : 0;
+    const targetX = pointer.active ? pointer.targetX : demoTargetX;
+    const targetY = pointer.active ? pointer.targetY : demoTargetY;
     pointer.x += (targetX - pointer.x) * 0.08;
     pointer.y += (targetY - pointer.y) * 0.08;
 
@@ -140,7 +146,8 @@ function NameText3D({ pointerRef }) {
       const dx = letter.baseX - pointerLocalX;
       const dy = letter.influenceY - pointerLocalY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const influence = pointer.active ? Math.exp(-distance * falloff) : 0;
+      const interactionStrength = pointer.active ? 1 : demoEnabled ? 0.5 : 0;
+      const influence = Math.exp(-distance * falloff) * interactionStrength;
 
       const targetY = letter.baseY + letter.direction * amplitude * influence;
 
@@ -171,9 +178,66 @@ function NameText3D({ pointerRef }) {
 
 export default function NameAsciiScene({ theme = "dark" }) {
   const isLight = theme === "light";
-  const pointerRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
+  const pointerRef = useRef({
+    x: 0,
+    y: 0,
+    targetX: 0,
+    targetY: 0,
+    active: false,
+    demoStartedAt: 0,
+  });
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [showMobileHint, setShowMobileHint] = useState(false);
 
   useEffect(() => {
+    const updateViewportState = () => {
+      setIsMobileViewport(window.innerWidth <= MOBILE_BREAKPOINT);
+    };
+
+    updateViewportState();
+    window.addEventListener("resize", updateViewportState, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", updateViewportState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileViewport) {
+      setShowMobileHint(false);
+      return;
+    }
+
+    let seenHint = false;
+    try {
+      seenHint = window.localStorage.getItem(MOBILE_HINT_STORAGE_KEY) === "1";
+    } catch {
+      seenHint = false;
+    }
+
+    if (seenHint) {
+      setShowMobileHint(false);
+      return;
+    }
+
+    pointerRef.current.demoStartedAt = performance.now();
+    setShowMobileHint(true);
+  }, [isMobileViewport]);
+
+  useEffect(() => {
+    const dismissMobileHint = () => {
+      if (!isMobileViewport || !showMobileHint) {
+        return;
+      }
+
+      setShowMobileHint(false);
+      try {
+        window.localStorage.setItem(MOBILE_HINT_STORAGE_KEY, "1");
+      } catch {
+        // Storage access can fail in private mode; ignore and continue.
+      }
+    };
+
     const updatePointer = (clientX, clientY) => {
       const width = window.innerWidth || 1;
       const height = window.innerHeight || 1;
@@ -187,7 +251,20 @@ export default function NameAsciiScene({ theme = "dark" }) {
       updatePointer(event.clientX, event.clientY);
     };
 
+    const handleTouchStart = (event) => {
+      dismissMobileHint();
+
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      updatePointer(touch.clientX, touch.clientY);
+    };
+
     const handleTouchMove = (event) => {
+      dismissMobileHint();
+
       const touch = event.touches[0];
       if (!touch) {
         return;
@@ -203,7 +280,7 @@ export default function NameAsciiScene({ theme = "dark" }) {
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    window.addEventListener("touchstart", handleTouchMove, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", handlePointerReset, { passive: true });
     window.addEventListener("touchcancel", handlePointerReset, { passive: true });
@@ -212,14 +289,14 @@ export default function NameAsciiScene({ theme = "dark" }) {
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("touchstart", handleTouchMove);
+      window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handlePointerReset);
       window.removeEventListener("touchcancel", handlePointerReset);
       window.removeEventListener("blur", handlePointerReset);
       document.removeEventListener("mouseleave", handlePointerReset);
     };
-  }, []);
+  }, [isMobileViewport, showMobileHint]);
 
   return (
     <div className="home-scene-canvas" aria-hidden="true">
@@ -229,7 +306,7 @@ export default function NameAsciiScene({ theme = "dark" }) {
         <directionalLight position={[7, 6, 8]} intensity={1.2} />
         <directionalLight position={[-7, -5, -7]} intensity={0.35} />
 
-        <NameText3D pointerRef={pointerRef} />
+        <NameText3D isMobileHintActive={isMobileViewport && showMobileHint} pointerRef={pointerRef} />
 
         <AsciiRenderer
           fgColor={isLight ? "#080808" : "white"}
@@ -239,6 +316,7 @@ export default function NameAsciiScene({ theme = "dark" }) {
           resolution={0.21}
         />
       </Canvas>
+      {isMobileViewport && showMobileHint ? <div className="home-scene-hint">Drag the text</div> : null}
     </div>
   );
 }
