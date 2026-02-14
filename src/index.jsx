@@ -1,140 +1,122 @@
 import { createRoot } from "react-dom/client";
-import { Canvas, useThree } from "@react-three/fiber";
-import { useState, useEffect } from 'react'
-import { Leva } from 'leva'
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./styles/index.css";
-import Experience from "./Experience";
-import Header from "./Header";
-import Actions from "./Actions";
-import ViewInfo from "./ViewInfo";
-import MobileOverlay from "./components/MobileOverlay";
-import { projects } from './projects';
-import { useViewState } from './hooks/useViewState';
-import { useSwipeGesture } from './hooks/useSwipeGesture';
+import HomePage from "./pages/HomePage";
+import PortfolioPage from "./pages/PortfolioPage";
+import { BlogIndexPage, BlogPostPage } from "./pages/BlogPage";
 
-function CameraController({ isMobile }) {
-    const { camera } = useThree();
-    
-    useEffect(() => {
-        camera.position.z = isMobile ? 18 : 14;
-    }, [isMobile, camera]);
-    
-    return null;
+function normalizePathname(pathname) {
+  if (!pathname) {
+    return "/";
+  }
+
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+
+  return pathname;
+}
+
+function parseRoute(pathname) {
+  const normalizedPath = normalizePathname(pathname);
+
+  if (normalizedPath === "/") {
+    return { type: "home" };
+  }
+
+  if (normalizedPath === "/portfolio" || normalizedPath.startsWith("/portfolio/")) {
+    return { type: "portfolio" };
+  }
+
+  if (normalizedPath === "/blog") {
+    return { type: "blog-index" };
+  }
+
+  if (normalizedPath.startsWith("/blog/")) {
+    const slugSegment = normalizedPath.slice("/blog/".length).split("/")[0];
+
+    if (slugSegment) {
+      try {
+        return { type: "blog-post", slug: decodeURIComponent(slugSegment) };
+      } catch {
+        return { type: "not-found" };
+      }
+    }
+  }
+
+  return { type: "not-found" };
+}
+
+function NotFoundPage({ pathname, navigate }) {
+  return (
+    <div className="site-shell">
+      <main className="site-home">
+        <h1 className="site-name">404</h1>
+        <p className="site-subtitle">
+          No page exists at <code>{pathname}</code>.
+        </p>
+        <div className="site-action-row">
+          <button className="site-nav-btn" onClick={() => navigate("/")}>Home</button>
+          <button className="site-nav-btn" onClick={() => navigate("/portfolio")}>Portfolio</button>
+          <button className="site-nav-btn" onClick={() => navigate("/blog")}>Blog</button>
+        </div>
+      </main>
+    </div>
+  );
 }
 
 function App() {
-    const [theme, setTheme] = useState('dark');
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    
-    const {
-        slideIndex,
-        setSlideIndex,
-        viewIndex,
-        prev,
-        next,
-        showLeva,
-        showInfo,
-        setShowInfo,
-        showBio,
-        setShowBio,
-        hasSwiped,
-        clickedViews,
-        markViewAsClicked,
-    } = useViewState();
+  const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = window.localStorage.getItem("theme");
+    return savedTheme === "light" ? "light" : "dark";
+  });
 
-    const { onTouchStart, onTouchEnd } = useSwipeGesture(
-        next,
-        prev,
-        !showInfo && !showBio
-    );
+  const route = useMemo(() => parseRoute(pathname), [pathname]);
 
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+  useEffect(() => {
+    const handlePopState = () => {
+      setPathname(normalizePathname(window.location.pathname));
+    };
 
-    useEffect(() => {
-        document.body.classList.toggle('light', theme === 'light');
-    }, [theme]);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
-    return (
-        <div className="main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-            <div className="landscape-warning">
-                <p>Please rotate your device to portrait mode</p>
-            </div>
-            <Leva hidden={!showLeva} />
-            
-            <MobileOverlay 
-                type="info" 
-                isOpen={showInfo} 
-                onClose={() => setShowInfo(false)} 
-                viewIndex={viewIndex} 
-            />
+  useEffect(() => {
+    window.localStorage.setItem("theme", theme);
+    document.body.classList.toggle("light", theme === "light");
+  }, [theme]);
 
-            <MobileOverlay 
-                type="bio" 
-                isOpen={showBio} 
-                onClose={() => setShowBio(false)} 
-            />
+  const navigate = useCallback((to) => {
+    const normalizedTarget = normalizePathname(to);
+    const currentPathname = normalizePathname(window.location.pathname);
 
-            <aside className="panel-left">
-                <Header onHeaderClick={() => isMobile && setShowBio(true)} />
-                <div className="desktop-view-info">
-                    <ViewInfo viewIndex={viewIndex} />
-                </div>
-                <Actions 
-                    theme={theme} 
-                    setTheme={setTheme} 
-                    viewControlProps={{ prev, next, viewIndex }} 
-                    hasSwiped={hasSwiped} 
-                    hasClicked={clickedViews.has(viewIndex)} 
-                    isMobile={isMobile} 
-                />
-            </aside>
+    if (normalizedTarget === currentPathname) {
+      return;
+    }
 
-            <button 
-                className="mobile-info-btn" 
-                onClick={() => {
-                    setShowInfo(true);
-                    markViewAsClicked(viewIndex);
-                }}
-            >
-                Learn more
-            </button>
+    window.history.pushState({}, "", normalizedTarget);
+    setPathname(normalizedTarget);
+  }, []);
 
-            <main className="panel-right">
-                <div className="canvas-container">
-                    <Canvas 
-                        camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}
-                        gl={{ powerPreference: "high-performance" }}
-                    >
-                        <CameraController isMobile={isMobile} />
-                        <Experience 
-                            slideIndex={slideIndex} 
-                            setSlideIndex={(val) => {
-                                setSlideIndex(val);
-                            }} 
-                            theme={theme} 
-                            onModelClick={() => {
-                                if (isMobile) {
-                                    setShowInfo(true);
-                                    markViewAsClicked(viewIndex);
-                                }
-                            }}
-                        />
-                    </Canvas>
+  if (route.type === "portfolio") {
+    return <PortfolioPage theme={theme} setTheme={setTheme} pathname={pathname} navigate={navigate} />;
+  }
 
-                    <div className="view-controls desktop-only">
-                        <button className="btn view-btn" onClick={prev} aria-label="Previous view">‹</button>
-                        <div className="view-indicator">{viewIndex + 1} / {projects.length}</div>
-                        <button className="btn view-btn" onClick={next} aria-label="Next view">›</button>
-                    </div>
-                </div>
-            </main>
-        </div>
-    )
+  if (route.type === "blog-index") {
+    return <BlogIndexPage pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />;
+  }
+
+  if (route.type === "blog-post") {
+    return <BlogPostPage pathname={pathname} slug={route.slug} navigate={navigate} theme={theme} setTheme={setTheme} />;
+  }
+
+  if (route.type === "home") {
+    return <HomePage pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />;
+  }
+
+  return <NotFoundPage pathname={pathname} navigate={navigate} />;
 }
 
-const root = createRoot(document.getElementById("root"));
-root.render(<App />);
+createRoot(document.getElementById("root")).render(<App />);
