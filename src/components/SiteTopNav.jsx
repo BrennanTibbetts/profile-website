@@ -43,7 +43,7 @@ export default function SiteTopNav({
           navigate={navigate}
           className={`site-nav-btn ${isActive(pathname, "/portfolio") ? "is-active" : ""}`.trim()}
         >
-          Portfolio
+          Profile
         </AppLink>
       )}
       {showBlog && (
@@ -52,7 +52,7 @@ export default function SiteTopNav({
           navigate={navigate}
           className={`site-nav-btn ${isActive(pathname, "/blog") ? "is-active" : ""}`.trim()}
         >
-          Blog
+          Posts
         </AppLink>
       )}
     </nav>

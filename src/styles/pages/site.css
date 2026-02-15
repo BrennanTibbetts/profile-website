@@ -624,6 +624,8 @@
 
   .home-topbar .site-top-nav,
   .blog-topbar .site-top-nav {
+    flex: 1 1 auto;
+    min-width: 0;
     width: auto;
     left: auto;
     top: auto;
@@ -641,6 +643,8 @@
 
   .home-topbar .site-social-row,
   .blog-topbar .site-social-row {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     width: auto;
     display: inline-flex;
     align-items: center;
@@ -656,9 +660,11 @@
 
   .home-topbar .site-nav-btn,
   .blog-topbar .site-nav-btn {
+    flex: 1 1 0;
     width: auto;
-    min-width: 92px;
+    min-width: 0;
     height: 44px;
+    padding: 0 10px;
     border-radius: 10px;
     border: 1px solid transparent;
     background: transparent;

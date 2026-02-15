@@ -73,8 +73,8 @@ function NotFoundPage({ pathname, navigate }) {
         </p>
         <div className="site-action-row">
           <button className="site-nav-btn" onClick={() => navigate("/")}>Home</button>
-          <button className="site-nav-btn" onClick={() => navigate("/portfolio")}>Portfolio</button>
-          <button className="site-nav-btn" onClick={() => navigate("/blog")}>Blog</button>
+          <button className="site-nav-btn" onClick={() => navigate("/portfolio")}>Profile</button>
+          <button className="site-nav-btn" onClick={() => navigate("/blog")}>Posts</button>
         </div>
       </main>
     </div>
