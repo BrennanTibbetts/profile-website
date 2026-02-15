@@ -500,7 +500,6 @@ export default function NameAsciiScene() {
   });
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [showMobileHint, setShowMobileHint] = useState(false);
-  const asciiResolution = isMobileViewport ? ASCII_RESOLUTION_MOBILE : ASCII_RESOLUTION_DESKTOP;
   const renderControls = useControls("Home Render", {
     asciiEnabled: { value: true },
     matcapMode: { value: true },
@@ -521,10 +520,15 @@ export default function NameAsciiScene() {
       {
         asciiSet: { value: "ultra", options: ASCII_SET_OPTIONS },
         customCharacters: { value: ASCII_CHARACTER_SET_DEFAULT },
+        asciiDensityDesktop: { value: ASCII_RESOLUTION_DESKTOP, min: 0.08, max: 0.5, step: 0.01 },
+        asciiDensityMobile: { value: ASCII_RESOLUTION_MOBILE, min: 0.12, max: 0.8, step: 0.01 },
       },
       { collapsed: false }
     ),
   });
+  const asciiResolution = isMobileViewport
+    ? renderControls.asciiDensityMobile
+    : renderControls.asciiDensityDesktop;
   const customAsciiCharacters = (renderControls.customCharacters ?? "").replace(/\r?\n/g, "");
   const activeAsciiCharacters =
     renderControls.asciiSet === "custom"

@@ -29,7 +29,6 @@ export function BlogIndexPage({ pathname, navigate, includeHidden = false }) {
         {!featuredPost && (
           <section className="blog-empty-state">
             <h2>No posts yet</h2>
-            <p>Add a `.md` file to `content/blog` with `title` and `date` frontmatter.</p>
           </section>
         )}
 
