@@ -11,6 +11,13 @@ import { projects } from "../projects";
 import { useViewState } from "../hooks/useViewState";
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
 
+const LEVA_THEME = {
+  sizes: {
+    rootWidth: "360px",
+    controlWidth: "200px",
+  },
+};
+
 function CameraController({ isMobile }) {
   const { camera } = useThree();
 
@@ -21,7 +28,7 @@ function CameraController({ isMobile }) {
   return null;
 }
 
-export default function PortfolioPage({ theme, setTheme, pathname, navigate }) {
+export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const {
@@ -53,7 +60,7 @@ export default function PortfolioPage({ theme, setTheme, pathname, navigate }) {
       <div className="landscape-warning">
         <p>Please rotate your device to portrait mode</p>
       </div>
-      <Leva hidden={!showLeva} />
+      <Leva hidden={!showLeva} theme={LEVA_THEME} />
 
       <MobileOverlay type="info" isOpen={showInfo} onClose={() => setShowInfo(false)} viewIndex={viewIndex} />
 
@@ -76,8 +83,6 @@ export default function PortfolioPage({ theme, setTheme, pathname, navigate }) {
           <ViewInfo viewIndex={viewIndex} />
         </div>
         <Actions
-          theme={theme}
-          setTheme={setTheme}
           viewControlProps={{ prev, next, viewIndex }}
           hasSwiped={hasSwiped}
           hasClicked={clickedViews.has(viewIndex)}
@@ -106,7 +111,6 @@ export default function PortfolioPage({ theme, setTheme, pathname, navigate }) {
               setSlideIndex={(val) => {
                 setSlideIndex(val);
               }}
-              theme={theme}
               onModelClick={() => {
                 if (isMobile) {
                   setShowInfo(true);

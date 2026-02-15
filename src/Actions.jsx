@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { projects } from './projects';
 
-export default function Actions({ theme, setTheme, viewControlProps, hasSwiped, hasClicked, isMobile }) {
+export default function Actions({ viewControlProps, hasSwiped, hasClicked, isMobile }) {
   const { prev, next, viewIndex } = viewControlProps || {};
   const [resumeOpen, setResumeOpen] = useState(false);
 
@@ -39,19 +39,11 @@ export default function Actions({ theme, setTheme, viewControlProps, hasSwiped, 
           >RESUME</button>
         </div>
 
-        <div className="actions-theme-rail">
-          <button
-            className="btn theme-toggle"
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            aria-label="Toggle light / dark theme"
-            title="Toggle theme"
-          >{theme === 'dark' ? '☀️' : '🌑'}</button>
-        </div>
       </div>
 
       {resumeOpen && (
         <div className="resume-modal" onClick={() => setResumeOpen(false)}>
-          <div className={`resume-modal-content ${theme === 'dark' ? 'dark' : 'light'}`} onClick={e => e.stopPropagation()}>
+          <div className="resume-modal-content" onClick={e => e.stopPropagation()}>
             <button className="btn close-resume" onClick={() => setResumeOpen(false)} aria-label="Close resume">✕</button>
             <iframe
               src="/assets/Resume_Brennan_Tibbetts.pdf"

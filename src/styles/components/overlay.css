@@ -122,10 +122,3 @@
   font-size: 0.9em;
   margin: 0 4px;
 }
-
-/* light mode variant for mobile overlay */
-body.light .mobile-info-content .inline-skill,
-body.light .mobile-info-content .inline-framework {
-  background: rgba(255, 223, 77, 0.08);
-  color: #b8860b;
-}

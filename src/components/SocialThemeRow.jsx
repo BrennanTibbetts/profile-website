@@ -1,8 +1,8 @@
-export default function SocialThemeRow({ theme, setTheme, className = "" }) {
+export default function SocialThemeRow({ className = "" }) {
   const rowClass = ["site-social-row", className].filter(Boolean).join(" ");
 
   return (
-    <div className={rowClass} aria-label="Social links and theme controls">
+    <div className={rowClass} aria-label="Social links">
       <a
         className="social-btn"
         href="https://www.linkedin.com/in/brennan-t-tibbetts/"
@@ -30,14 +30,6 @@ export default function SocialThemeRow({ theme, setTheme, className = "" }) {
       >
         <img src="/images/email.png" alt="Linktree" />
       </a>
-      <button
-        className="btn theme-toggle"
-        onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-        aria-label="Toggle light and dark theme"
-        title="Toggle theme"
-      >
-        {theme === "dark" ? "☀️" : "🌑"}
-      </button>
     </div>
   );
 }

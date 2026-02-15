@@ -11,7 +11,7 @@ import { projects } from "./projects.js";
 import { usePointerDrag } from "./hooks/usePointerDrag.js";
 import { useCarouselRotation } from "./hooks/useCarouselRotation.js";
 
-export default function Experience({ slideIndex = 0, setSlideIndex, theme = "dark", onModelClick }) {
+export default function Experience({ slideIndex = 0, setSlideIndex, onModelClick }) {
   const numItems = projects.length;
   const viewIndex = ((slideIndex % numItems) + numItems) % numItems;
   const { gl } = useThree();
@@ -50,11 +50,9 @@ export default function Experience({ slideIndex = 0, setSlideIndex, theme = "dar
     props.carouselRadius
   );
 
-  const bgColor = theme === "light" ? "#f6f6f6" : props.backgroundColor;
-
   return (
     <>
-      <color args={[bgColor]} attach={"background"} />
+      <color args={[props.backgroundColor]} attach={"background"} />
       {props.performance && <Perf position='top-left' />}
       <Lights modelLighting={modelLightingPresets.phone} />
       <Environment preset={props.environmentPreset} />
@@ -64,10 +62,10 @@ export default function Experience({ slideIndex = 0, setSlideIndex, theme = "dar
           <PhoneModel scale={1.3} isActive={viewIndex === 0} />
         </group>
         <group position={getPosition(1, -1)} rotation={getRotation(1)}>
-          <AWSModel scale={0.3} theme={theme} isActive={viewIndex === 1} />
+          <AWSModel scale={0.3} isActive={viewIndex === 1} />
         </group>
         <group position={getPosition(2, 0)} rotation={getRotation(2)}>
-          <CubeModel scale={1.2} theme={theme} isActive={viewIndex === 2} />
+          <CubeModel scale={1.2} isActive={viewIndex === 2} />
         </group>
       </group>
     </>

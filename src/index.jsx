@@ -83,10 +83,6 @@ function NotFoundPage({ pathname, navigate }) {
 
 function App() {
   const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
-  const [theme, setTheme] = useState(() => {
-    const savedTheme = window.localStorage.getItem("theme");
-    return savedTheme === "light" ? "light" : "dark";
-  });
 
   const route = useMemo(() => parseRoute(pathname), [pathname]);
 
@@ -98,11 +94,6 @@ function App() {
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem("theme", theme);
-    document.body.classList.toggle("light", theme === "light");
-  }, [theme]);
 
   const navigate = useCallback((to) => {
     const normalizedTarget = normalizePathname(to);
@@ -117,7 +108,7 @@ function App() {
   }, []);
 
   if (route.type === "portfolio") {
-    return <PortfolioPage theme={theme} setTheme={setTheme} pathname={pathname} navigate={navigate} />;
+    return <PortfolioPage pathname={pathname} navigate={navigate} />;
   }
 
   if (route.type === "blog-index") {
@@ -125,8 +116,6 @@ function App() {
       <BlogIndexPage
         pathname={pathname}
         navigate={navigate}
-        theme={theme}
-        setTheme={setTheme}
         includeHidden={route.includeHidden}
       />
     );
@@ -138,15 +127,13 @@ function App() {
         pathname={pathname}
         slug={route.slug}
         navigate={navigate}
-        theme={theme}
-        setTheme={setTheme}
         allowHidden={route.allowHidden}
       />
     );
   }
 
   if (route.type === "home") {
-    return <HomePage pathname={pathname} navigate={navigate} theme={theme} setTheme={setTheme} />;
+    return <HomePage pathname={pathname} navigate={navigate} />;
   }
 
   return <NotFoundPage pathname={pathname} navigate={navigate} />;

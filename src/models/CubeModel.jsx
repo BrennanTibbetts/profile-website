@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useMouseTracking } from "../hooks/useMouseTracking";
 
-export function CubeModel({ theme = "dark", isActive = true, ...props }) {
+export function CubeModel({ isActive = true, ...props }) {
   const spinRef = useRef();
 
   const forwardAxis = useMemo(() => new THREE.Vector3(0, 0, 1), []);
@@ -30,9 +30,9 @@ export function CubeModel({ theme = "dark", isActive = true, ...props }) {
         <mesh castShadow receiveShadow>
           <boxGeometry args={[2.4, 2.4, 2.4]} />
           <meshStandardMaterial
-            color={theme === "light" ? "#1d1d1d" : "#f1f1f1"}
-            emissive={theme === "light" ? "#000000" : "#101010"}
-            emissiveIntensity={theme === "light" ? 0 : 0.2}
+            color="#f1f1f1"
+            emissive="#101010"
+            emissiveIntensity={0.2}
             metalness={0.35}
             roughness={0.35}
           />

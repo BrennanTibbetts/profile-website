@@ -133,13 +133,6 @@
   margin: 0 4px;
 }
 
-/* light mode variant for desk view */
-body.light .panel-left .view-info .inline-skill,
-body.light .panel-left .view-info .inline-framework {
-  background: rgba(255, 223, 77, 0.06);
-  color: #8b6a00;
-}
-
 .panel-right {
   flex: 1 1 auto;
   position: relative;

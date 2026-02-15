@@ -3,13 +3,13 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { useMouseTracking } from '../hooks/useMouseTracking'
 
-export function AWSModel({ theme = 'dark', isActive = true, ...props }) {
+export function AWSModel({ isActive = true, ...props }) {
   const { nodes, materials } = useGLTF('/assets/models/aws/scene.gltf')
   const modelOffset = new THREE.Quaternion()
   modelOffset.setFromEuler(new THREE.Euler(0.1, 0, 0))
   const modelRef = useMouseTracking(new THREE.Vector3(0, 0, 1), modelOffset, isActive)
 
-  // Create new materials based on theme
+  // Theme is removed app-wide; keep a single dark-mode material set.
   const arrowMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       color: '#FF9500', // Orange
@@ -22,13 +22,13 @@ export function AWSModel({ theme = 'dark', isActive = true, ...props }) {
 
   const textMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
-      color: theme === 'dark' ? '#ffffff' : '#000000', // White for light, black for dark
+      color: '#ffffff',
       metalness: 0.2,
       roughness: 0.6,
-      emissive: theme === 'dark' ? '#000000' : '#ffffff',
+      emissive: '#000000',
       emissiveIntensity: 0.05
     })
-  }, [theme])
+  }, [])
 
   return (
     <group {...props} dispose={null} ref={modelRef}>

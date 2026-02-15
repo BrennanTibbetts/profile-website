@@ -14,7 +14,6 @@
   .btn,
   .site-nav-btn,
   .social-btn,
-  .theme-toggle,
   .view-btn,
   .resume-btn,
   .blog-back-link,
@@ -46,7 +45,6 @@
   .btn,
   .site-nav-btn,
   .social-btn,
-  .theme-toggle,
   .view-btn,
   .resume-btn,
   .blog-back-link,
@@ -63,7 +61,6 @@
     .btn,
     .site-nav-btn,
     .social-btn,
-    .theme-toggle,
     .view-btn,
     .resume-btn,
     .blog-back-link,
@@ -80,7 +77,6 @@
   .btn,
   .site-nav-btn,
   .social-btn,
-  .theme-toggle,
   .view-btn,
   .resume-btn,
   .blog-back-link,
@@ -97,7 +93,6 @@
   .site-social-row,
   .site-action-row,
   .actions-buttons,
-  .actions-theme-rail,
   .view-controls
 ) {
   backdrop-filter: blur(10px);
@@ -114,9 +109,8 @@
   .site-social-row,
   .site-action-row,
   .actions-buttons,
-  .actions-theme-rail,
   .view-controls
-) :is(.site-nav-btn, .social-btn, .theme-toggle, .view-btn, .resume-btn, .btn) {
+) :is(.site-nav-btn, .social-btn, .view-btn, .resume-btn, .btn) {
   background: transparent;
   border-color: transparent;
 }
@@ -312,10 +306,6 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-}
-
-.site-social-row .theme-toggle {
-  margin-left: 0;
 }
 
 .blog-shell {
@@ -602,131 +592,6 @@
   padding: 0;
 }
 
-body.light .site-shell {
-  background: linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%);
-  color: #111111;
-}
-
-body.light :is(
-  .site-top-nav,
-  .site-social-row,
-  .site-action-row,
-  .actions-buttons,
-  .actions-theme-rail,
-  .view-controls
-) {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 0, 0, 0.14);
-}
-
-body.light .site-subtitle,
-body.light .blog-page-header p,
-body.light .blog-section-label,
-body.light .blog-date,
-body.light .blog-empty-state p {
-  color: #666666;
-}
-
-body.light :is(
-  .btn,
-  .site-nav-btn,
-  .social-btn,
-  .theme-toggle,
-  .view-btn,
-  .resume-btn,
-  .blog-back-link,
-  .close-info-btn,
-  .close-resume,
-  .header-back-btn
-) {
-  background: rgba(255, 255, 255, 0.9);
-  color: #111111;
-  border-color: rgba(0, 0, 0, 0.14);
-}
-
-body.light .site-nav-btn.is-active {
-  background: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.2);
-  color: #666666;
-  font-style: italic;
-}
-
-body.light :is(
-  .btn,
-  .site-nav-btn,
-  .social-btn,
-  .theme-toggle,
-  .view-btn,
-  .resume-btn,
-  .blog-back-link,
-  .close-info-btn,
-  .close-resume,
-  .header-back-btn
-):focus-visible {
-  outline-color: rgba(0, 0, 0, 0.38);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  body.light :is(
-    .btn,
-    .site-nav-btn,
-    .social-btn,
-    .theme-toggle,
-    .view-btn,
-    .resume-btn,
-    .blog-back-link,
-    .close-info-btn,
-    .close-resume,
-    .header-back-btn
-  ):hover {
-    background: rgba(0, 0, 0, 0.06);
-    border-color: rgba(0, 0, 0, 0.22);
-  }
-}
-
-body.light .blog-featured-card,
-body.light .blog-list-item,
-body.light .blog-post,
-body.light .blog-empty-state {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-body.light .blog-excerpt,
-body.light .blog-markdown {
-  color: #2c2c2c;
-}
-
-body.light .blog-markdown h1,
-body.light .blog-markdown h2,
-body.light .blog-markdown h3,
-body.light .blog-markdown h4,
-body.light .blog-markdown h5,
-body.light .blog-markdown h6 {
-  color: #111111;
-}
-
-body.light .blog-markdown blockquote {
-  border-left-color: rgba(0, 0, 0, 0.2);
-  color: #4a4a4a;
-}
-
-body.light .blog-markdown hr {
-  border-top-color: rgba(0, 0, 0, 0.16);
-}
-
-body.light .blog-markdown code,
-body.light .blog-code-block {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.14);
-}
-
-body.light .home-scene-hint {
-  background: rgba(255, 255, 255, 0.78);
-  border-color: rgba(0, 0, 0, 0.2);
-  color: #111111;
-}
-
 @media (max-width: 768px) {
   .site-top-nav {
     top: 14px;
@@ -786,7 +651,7 @@ body.light .home-scene-hint {
   .blog-topbar .site-social-row {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     padding: 4px;
     border-radius: 14px;
@@ -825,9 +690,7 @@ body.light .home-scene-hint {
   }
 
   .home-topbar .site-social-row .social-btn,
-  .home-topbar .site-social-row .theme-toggle,
-  .blog-topbar .site-social-row .social-btn,
-  .blog-topbar .site-social-row .theme-toggle {
+  .blog-topbar .site-social-row .social-btn {
     width: 100%;
     height: 44px;
     border-radius: 10px;
@@ -839,11 +702,6 @@ body.light .home-scene-hint {
   .blog-topbar .site-social-row .social-btn img {
     width: 30px;
     height: 30px;
-  }
-
-  .home-topbar .site-social-row .theme-toggle,
-  .blog-topbar .site-social-row .theme-toggle {
-    font-size: 18px;
   }
 
   .home-scene-hint {
@@ -874,37 +732,5 @@ body.light .home-scene-hint {
   .blog-list-item {
     padding: 18px;
     align-items: flex-start;
-  }
-
-  body.light .home-topbar .site-top-nav,
-  body.light .home-topbar .site-social-row,
-  body.light .blog-topbar .site-top-nav,
-  body.light .blog-topbar .site-social-row {
-    background: rgba(255, 255, 255, 0.86);
-    border-color: rgba(0, 0, 0, 0.12);
-  }
-
-  body.light .home-topbar .site-nav-btn,
-  body.light .blog-topbar .site-nav-btn {
-    background: transparent;
-    border-color: transparent;
-    color: rgba(0, 0, 0, 0.76);
-  }
-
-  body.light .home-topbar .site-nav-btn.is-active,
-  body.light .blog-topbar .site-nav-btn.is-active {
-    background: rgba(0, 0, 0, 0.08);
-    border-color: rgba(0, 0, 0, 0.18);
-    color: #666666;
-    font-style: italic;
-  }
-
-  body.light .home-topbar .site-social-row .social-btn,
-  body.light .home-topbar .site-social-row .theme-toggle,
-  body.light .blog-topbar .site-social-row .social-btn,
-  body.light .blog-topbar .site-social-row .theme-toggle {
-    background: transparent;
-    border-color: transparent;
-    color: #111111;
   }
 }
