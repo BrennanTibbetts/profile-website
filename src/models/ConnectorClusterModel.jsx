@@ -129,7 +129,7 @@ function Connector({
   children,
   accent = false,
   registerBody,
-  anchorSourceRef,
+  unregisterBody,
   bodyIndex = 0,
   colliderCoreHalf = 0.38,
   colliderArmHalf = 1.27,
@@ -140,12 +140,16 @@ function Connector({
   const initialPosition = useMemo(() => position ?? [0, 0, 0], [position]);
 
   useEffect(() => {
-    if (!registerBody || !bodyRef.current || !anchorSourceRef?.current) {
+    const body = bodyRef.current;
+    if (!registerBody || !body) {
       return;
     }
 
-    registerBody(bodyIndex, bodyRef.current, initialPosition);
-  }, [registerBody, bodyIndex, initialPosition, anchorSourceRef]);
+    registerBody(bodyIndex, body, initialPosition);
+    return () => {
+      unregisterBody?.(bodyIndex, body);
+    };
+  }, [registerBody, unregisterBody, bodyIndex, initialPosition]);
 
   return (
     <RigidBody
@@ -206,9 +210,8 @@ export function ConnectorClusterModel({
   }, [maxConnectors]);
 
   useEffect(() => {
-    bodyMetaRef.current = [];
     hasPrevAnchorRef.current = false;
-  }, [connectors.length]);
+  }, [connectors]);
 
   const registerBody = useMemo(
     () => (index, body, localPositionArray) => {
@@ -217,6 +220,20 @@ export function ConnectorClusterModel({
         localPosition: new THREE.Vector3(localPositionArray[0], localPositionArray[1], localPositionArray[2]),
         initialized: false,
       };
+    },
+    []
+  );
+
+  const unregisterBody = useMemo(
+    () => (index, body) => {
+      const meta = bodyMetaRef.current[index];
+      if (!meta) {
+        return;
+      }
+      if (body && meta.body !== body) {
+        return;
+      }
+      bodyMetaRef.current[index] = undefined;
     },
     []
   );
@@ -340,9 +357,9 @@ export function ConnectorClusterModel({
             <Connector
               key={index}
               {...connector}
-              anchorSourceRef={anchorSourceRef}
               bodyIndex={index}
               registerBody={registerBody}
+              unregisterBody={unregisterBody}
               colliderCoreHalf={colliderCoreHalf}
               colliderArmHalf={colliderArmHalf}
               enableAccentLights={enableAccentLights}

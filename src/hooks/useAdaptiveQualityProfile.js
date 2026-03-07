@@ -11,6 +11,8 @@ const TIER_ORDER = {
   low: 2,
 };
 
+export const QUALITY_TIER_OPTIONS = ["auto", "high", "medium", "low"];
+
 export const QUALITY_PRESETS = {
   high: {
     canvasDpr: [1, 1.25],
@@ -49,6 +51,13 @@ export const QUALITY_PRESETS = {
     connectorCenterPullMultiplier: 0.75,
   },
 };
+
+function normalizeOverrideTier(value) {
+  if (value && value in QUALITY_PRESETS) {
+    return value;
+  }
+  return "auto";
+}
 
 function worstTier(a, b) {
   return TIER_ORDER[a] >= TIER_ORDER[b] ? a : b;
@@ -133,9 +142,10 @@ function writeCachedTier(payload) {
   }
 }
 
-export function useAdaptiveQualityProfile() {
+export function useAdaptiveQualityProfile(overrideTier = "auto") {
   const hardwareTier = useMemo(() => getHardwareTier(), []);
   const cached = useMemo(() => readCachedTier(), []);
+  const normalizedOverride = useMemo(() => normalizeOverrideTier(overrideTier), [overrideTier]);
   const [profile, setProfile] = useState(() => ({
     tier: cached?.tier ?? hardwareTier,
     source: cached ? "cache" : "hardware",
@@ -212,8 +222,13 @@ export function useAdaptiveQualityProfile() {
     };
   }, [cached, hardwareTier]);
 
+  const effectiveTier = normalizedOverride === "auto" ? profile.tier : normalizedOverride;
+
   return {
     ...profile,
-    preset: QUALITY_PRESETS[profile.tier] ?? QUALITY_PRESETS.high,
+    detectedTier: profile.tier,
+    overrideTier: normalizedOverride,
+    tier: effectiveTier,
+    preset: QUALITY_PRESETS[effectiveTier] ?? QUALITY_PRESETS.high,
   };
 }

@@ -12,7 +12,7 @@ import { projects } from "../projects";
 import { useViewState } from "../hooks/useViewState";
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
 import { useDiagnosticsEnabled } from "../hooks/useDiagnosticsEnabled";
-import { useAdaptiveQualityProfile } from "../hooks/useAdaptiveQualityProfile";
+import { QUALITY_TIER_OPTIONS, useAdaptiveQualityProfile } from "../hooks/useAdaptiveQualityProfile";
 
 const LEVA_THEME = {
   sizes: {
@@ -40,10 +40,18 @@ function normalizeRange(a, b) {
 export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [diagnosticsEnabled] = useDiagnosticsEnabled();
-  const qualityProfile = useAdaptiveQualityProfile();
   const canvasContainerRef = useRef(null);
   const lastClickNavAtRef = useRef(0);
   const clickNavControls = useControls("Experience", {
+    "Performance Profile": folder(
+      {
+        qualityTierOverride: {
+          value: "auto",
+          options: QUALITY_TIER_OPTIONS,
+        },
+      },
+      { collapsed: true }
+    ),
     "Click Navigation": folder(
       {
         clickNavEnabled: { value: true },
@@ -59,6 +67,7 @@ export default function PortfolioPage({ pathname, navigate }) {
       { collapsed: true }
     ),
   });
+  const qualityProfile = useAdaptiveQualityProfile(clickNavControls.qualityTierOverride);
 
   const {
     slideIndex,
