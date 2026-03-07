@@ -27,7 +27,7 @@ export function CubeModel({ isActive = true, ...props }) {
   return (
     <group {...props} ref={cubeRef}>
       <group ref={spinRef}>
-        <mesh castShadow receiveShadow>
+        <mesh>
           <boxGeometry args={[2.4, 2.4, 2.4]} />
           <meshStandardMaterial
             color="#f1f1f1"

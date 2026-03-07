@@ -34,24 +34,18 @@ export function AWSModel({ isActive = true, ...props }) {
     <group {...props} dispose={null} ref={modelRef}>
       <group scale={0.01}>
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.ArrowBody_Material001_0.geometry}
           material={arrowMaterial}
           position={[-13.076, 155.698, -20.264]}
           scale={16067.461}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.AWS_Material003_0.geometry}
           material={textMaterial}
           position={[41.538, 612.01, -20.264]}
           scale={16067.461}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.ArrowHead_Material001_0.geometry}
           material={arrowMaterial}
           position={[593.304, 205.677, -20.264]}

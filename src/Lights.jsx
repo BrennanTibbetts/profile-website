@@ -1,5 +1,4 @@
-import { useControls } from "leva"
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
 
 const defaultLighting = {
     directional: {
@@ -41,7 +40,6 @@ export default function Lights({ modelLighting = null })
     return <>
         <directionalLight
             ref={directionalRef}
-            castShadow
             position={lightingConfig.directional.position}
             intensity={lightingConfig.directional.intensity}
         />

@@ -1,8 +1,8 @@
 import { useControls } from "leva";
 import { useState, useEffect } from "react";
 import { useThree } from "@react-three/fiber";
-import { Perf } from "r3f-perf";
 import { Environment } from "@react-three/drei";
+import SceneDiagnostics from "./components/SceneDiagnostics.jsx";
 import Lights, { modelLightingPresets } from "./Lights.jsx";
 import { AWSModel } from "./models/AWSModel.jsx";
 import { PhoneModel } from "./models/PhoneModel.jsx";
@@ -11,7 +11,7 @@ import { projects } from "./projects.js";
 import { usePointerDrag } from "./hooks/usePointerDrag.js";
 import { useCarouselRotation } from "./hooks/useCarouselRotation.js";
 
-export default function Experience({ slideIndex = 0, setSlideIndex, onModelClick }) {
+export default function Experience({ slideIndex = 0, setSlideIndex, onModelClick, diagnosticsEnabled = false }) {
   const numItems = projects.length;
   const viewIndex = ((slideIndex % numItems) + numItems) % numItems;
   const { gl } = useThree();
@@ -53,7 +53,7 @@ export default function Experience({ slideIndex = 0, setSlideIndex, onModelClick
   return (
     <>
       <color args={[props.backgroundColor]} attach={"background"} />
-      {props.performance && <Perf position='top-left' />}
+      <SceneDiagnostics enabled={props.performance || diagnosticsEnabled} />
       <Lights modelLighting={modelLightingPresets.phone} />
       <Environment preset={props.environmentPreset} />
 

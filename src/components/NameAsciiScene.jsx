@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { AsciiRenderer, Text3D, useFont } from "@react-three/drei";
+import { Text3D, useFont } from "@react-three/drei";
 import { Leva, folder, useControls } from "leva";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import SceneDiagnostics from "./SceneDiagnostics";
+import AsciiRendererOptimized from "./AsciiRendererOptimized";
+import { useDiagnosticsEnabled } from "../hooks/useDiagnosticsEnabled";
 
 const FONT_PRESETS = {
   helvetikerBold: { label: "Helvetiker Bold", path: "/fonts/helvetiker_bold.typeface.json" },
@@ -191,7 +194,7 @@ function NameText3D({
 
   const lines = ["Brennan", "Tibbetts"];
   const fontSize = isMobile ? 0.84 : 1.18;
-  const textHeight = isMobile ? 0.2 : 0.3;
+  const textDepth = isMobile ? 0.2 : 0.3;
   const lineGap = isMobile ? 1 : 1.28;
   const tracking = fontSize * (isMobile ? 0.085 : 0.095);
 
@@ -201,7 +204,7 @@ function NameText3D({
     const geometryOptions = {
       font: parsedFont,
       size: fontSize,
-      height: textHeight,
+      depth: textDepth,
       curveSegments: 6,
       bevelEnabled: false,
     };
@@ -286,7 +289,7 @@ function NameText3D({
       Number.isFinite(bounds.minX) && Number.isFinite(bounds.maxX) ? Math.max(bounds.maxX - bounds.minX, 0) : widestLine;
 
     return { letterLayout: centeredLetters, layoutWidth: measuredWidth };
-  }, [lineGap, fontSize, parsedFont, textHeight, tracking]);
+  }, [lineGap, fontSize, parsedFont, textDepth, tracking]);
 
   const layoutScale = useMemo(() => {
     const safeWidth = viewport.width * (isMobile ? 0.94 : 0.9);
@@ -450,7 +453,7 @@ function NameText3D({
           }}
           position={[letter.baseX, letter.baseY, 0]}
         >
-          <Text3D font={selectedFontPreset.path} size={fontSize} height={textHeight} curveSegments={6} bevelEnabled={false}>
+          <Text3D font={selectedFontPreset.path} size={fontSize} depth={textDepth} curveSegments={6} bevelEnabled={false}>
             {letter.char}
             {useMatcap && generatedMatcapTexture ? (
               <meshMatcapMaterial matcap={generatedMatcapTexture} color="#ffffff" />
@@ -490,6 +493,7 @@ function HomeCameraRig({ isMobile, controls }) {
 export default function NameAsciiScene() {
   const containerRef = useRef(null);
   const [showLeva, setShowLeva] = useState(false);
+  const [diagnosticsEnabled] = useDiagnosticsEnabled();
   const pointerRef = useRef({
     x: 0,
     y: 0,
@@ -727,6 +731,7 @@ export default function NameAsciiScene() {
       <Leva hidden={!showLeva} theme={LEVA_THEME} />
       <div ref={containerRef} className="home-scene-canvas" aria-hidden="true">
         <Canvas camera={{ position: [0, 0, 10.2], fov: 36 }} dpr={[1, 1.5]} gl={{ antialias: false }}>
+          <SceneDiagnostics enabled={diagnosticsEnabled} />
           <HomeCameraRig isMobile={isMobileViewport} controls={cameraControls} />
           <color attach="background" args={["#000000"]} />
           {!renderControls.matcapMode ? (
@@ -755,7 +760,7 @@ export default function NameAsciiScene() {
           />
 
           {renderControls.asciiEnabled ? (
-            <AsciiRenderer
+            <AsciiRendererOptimized
               key={asciiRendererKey}
               fgColor="white"
               bgColor="black"

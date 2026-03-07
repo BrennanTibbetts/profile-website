@@ -206,50 +206,32 @@
       "uri": "scene.bin"
     }
   ],
-  "extensionsRequired": [
-    "KHR_materials_pbrSpecularGlossiness"
-  ],
-  "extensionsUsed": [
-    "KHR_materials_pbrSpecularGlossiness"
-  ],
   "materials": [
     {
       "doubleSided": true,
-      "extensions": {
-        "KHR_materials_pbrSpecularGlossiness": {
-          "diffuseFactor": [
-            0.9386719999999998,
-            0.3185549999999997,
-            0.011612499999999974,
-            1.0
-          ],
-          "glossinessFactor": 0.09575527891124684,
-          "specularFactor": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.9386719999999998,
+          0.3185549999999997,
+          0.011612499999999974,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.9042447210887532
       },
       "name": "Material.001"
     },
     {
       "doubleSided": true,
-      "extensions": {
-        "KHR_materials_pbrSpecularGlossiness": {
-          "diffuseFactor": [
-            0.018499899999999996,
-            0.028426399999999987,
-            0.048171700000000005,
-            1.0
-          ],
-          "glossinessFactor": 0.006203218560246701,
-          "specularFactor": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.018499899999999996,
+          0.028426399999999987,
+          0.048171700000000005,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.9937967814397533
       },
       "name": "Material.003"
     }

@@ -10,6 +10,7 @@ import SiteTopNav from "../components/SiteTopNav";
 import { projects } from "../projects";
 import { useViewState } from "../hooks/useViewState";
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
+import { useDiagnosticsEnabled } from "../hooks/useDiagnosticsEnabled";
 
 const LEVA_THEME = {
   sizes: {
@@ -30,6 +31,7 @@ function CameraController({ isMobile }) {
 
 export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [diagnosticsEnabled] = useDiagnosticsEnabled();
 
   const {
     slideIndex,
@@ -104,9 +106,14 @@ export default function PortfolioPage({ pathname, navigate }) {
 
       <main className="panel-right">
         <div className="canvas-container">
-          <Canvas camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }} gl={{ powerPreference: "high-performance" }}>
+          <Canvas
+            camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}
+            dpr={[1, 1.25]}
+            gl={{ powerPreference: "high-performance" }}
+          >
             <CameraController isMobile={isMobile} />
             <Experience
+              diagnosticsEnabled={diagnosticsEnabled}
               slideIndex={slideIndex}
               setSlideIndex={(val) => {
                 setSlideIndex(val);
