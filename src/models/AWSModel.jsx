@@ -3,11 +3,15 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { useMouseTracking } from '../hooks/useMouseTracking'
 
-export function AWSModel({ isActive = true, ...props }) {
+export function AWSModel({ isActive = true, trackingEnabled = true, ...props }) {
   const { nodes, materials } = useGLTF('/assets/models/aws/scene.gltf')
-  const modelOffset = new THREE.Quaternion()
-  modelOffset.setFromEuler(new THREE.Euler(0.1, 0, 0))
-  const modelRef = useMouseTracking(new THREE.Vector3(0, 0, 1), modelOffset, isActive)
+  const modelOffset = useMemo(() => {
+    const quaternion = new THREE.Quaternion()
+    quaternion.setFromEuler(new THREE.Euler(0.1, 0, 0))
+    return quaternion
+  }, [])
+  const forwardAxis = useMemo(() => new THREE.Vector3(0, 0, 1), [])
+  const modelRef = useMouseTracking(forwardAxis, modelOffset, isActive, trackingEnabled)
 
   // Theme is removed app-wide; keep a single dark-mode material set.
   const arrowMaterial = useMemo(() => {

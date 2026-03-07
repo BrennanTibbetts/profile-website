@@ -1,0 +1,13 @@
+.git
+.github
+.vscode
+.tmpthumb
+dist
+node_modules
+node_modules.bak_*
+node_modules.bak_publicfix_*
+.npm-cache-public
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

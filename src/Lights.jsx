@@ -31,18 +31,19 @@ export const modelLightingPresets = {
     }
 }
 
-export default function Lights({ modelLighting = null })
+export default function Lights({ modelLighting = null, intensityScale = 1 })
 {
     const lightingConfig = modelLighting || defaultLighting
     const directionalRef = useRef(null)
     const ambientRef = useRef(null)
+    const safeScale = Number.isFinite(intensityScale) ? Math.max(0, intensityScale) : 1
 
     return <>
         <directionalLight
             ref={directionalRef}
             position={lightingConfig.directional.position}
-            intensity={lightingConfig.directional.intensity}
+            intensity={lightingConfig.directional.intensity * safeScale}
         />
-        <ambientLight ref={ambientRef} intensity={ lightingConfig.ambient.intensity } />
+        <ambientLight ref={ambientRef} intensity={ lightingConfig.ambient.intensity * safeScale } />
     </>
 }

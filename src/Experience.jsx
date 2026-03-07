@@ -10,12 +10,14 @@ import { ConnectorClusterModel } from "./models/ConnectorClusterModel.jsx";
 import { projects } from "./projects.js";
 import { usePointerDrag } from "./hooks/usePointerDrag.js";
 import { useCarouselRotation } from "./hooks/useCarouselRotation.js";
+import { QUALITY_PRESETS } from "./hooks/useAdaptiveQualityProfile";
 
 export default function Experience({
   slideIndex = 0,
   setSlideIndex,
   onModelClick,
   diagnosticsEnabled = false,
+  qualityProfile = null,
   disableConnectorInteraction = false,
 }) {
   const numItems = projects.length;
@@ -24,6 +26,7 @@ export default function Experience({
   const connectorAnchorRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [radiusIntroRunKey, setRadiusIntroRunKey] = useState(0);
+  const qualityPreset = qualityProfile?.preset ?? QUALITY_PRESETS.high;
 
   const props = useControls("Experience", {
     backgroundColor: "#000000",
@@ -77,21 +80,39 @@ export default function Experience({
     <>
       <color args={[props.backgroundColor]} attach={"background"} />
       <SceneDiagnostics enabled={props.performance || diagnosticsEnabled} />
-      <Lights modelLighting={modelLightingPresets.phone} />
-      <Environment preset={props.environmentPreset} />
+      <Lights
+        modelLighting={modelLightingPresets.phone}
+        intensityScale={qualityPreset.lightingIntensityScale}
+      />
+      {qualityPreset.enableEnvironment ? (
+        <Environment preset={props.environmentPreset} resolution={qualityPreset.environmentResolution} />
+      ) : null}
 
       <group ref={groupRef} position={[0, 0, 0]}>
         <group position={getPosition(0, 0)} rotation={getRotation(0)}>
-          <PhoneModel scale={1.3} isActive={viewIndex === 0} />
+          <PhoneModel
+            scale={1.3}
+            isActive={viewIndex === 0}
+            trackingEnabled={qualityPreset.enableMouseTracking}
+          />
         </group>
         <group position={getPosition(1, -1)} rotation={getRotation(1)}>
-          <AWSModel scale={0.3} isActive={viewIndex === 1} />
+          <AWSModel
+            scale={0.3}
+            isActive={viewIndex === 1}
+            trackingEnabled={qualityPreset.enableMouseTracking}
+          />
         </group>
         <group ref={connectorAnchorRef} position={getPosition(2, 0)} rotation={getRotation(2)} />
       </group>
       <ConnectorClusterModel
         isActive={viewIndex === 2}
         interactionEnabled={!disableConnectorInteraction}
+        maxConnectors={qualityPreset.connectorCount}
+        physicsStepDivisor={qualityPreset.connectorPhysicsStepDivisor}
+        pointerUpdateDivisor={qualityPreset.connectorPointerUpdateDivisor}
+        enableAccentLights={qualityPreset.connectorAccentLights}
+        centerPullStrengthMultiplier={qualityPreset.connectorCenterPullMultiplier}
         anchorSourceRef={connectorAnchorRef}
       />
     </>

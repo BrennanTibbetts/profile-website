@@ -86,12 +86,19 @@ function randomEulerRotation() {
   ];
 }
 
-function PointerCollider({ enabled, anchorSourceRef }) {
+function PointerCollider({ enabled, anchorSourceRef, pointerUpdateDivisor = 1 }) {
   const pointerRef = useRef(null);
   const center = useMemo(() => new THREE.Vector3(), []);
+  const updateCounterRef = useRef(0);
 
   useFrame(({ mouse, viewport }) => {
     if (!anchorSourceRef?.current) {
+      return;
+    }
+
+    const safeDivisor = Math.max(1, Math.floor(pointerUpdateDivisor));
+    updateCounterRef.current += 1;
+    if (safeDivisor > 1 && updateCounterRef.current % safeDivisor !== 0) {
       return;
     }
 
@@ -126,6 +133,7 @@ function Connector({
   bodyIndex = 0,
   colliderCoreHalf = 0.38,
   colliderArmHalf = 1.27,
+  enableAccentLights = true,
   ...props
 }) {
   const bodyRef = useRef(null);
@@ -153,12 +161,21 @@ function Connector({
       <CuboidCollider args={[colliderArmHalf, colliderCoreHalf, colliderCoreHalf]} />
       <CuboidCollider args={[colliderCoreHalf, colliderCoreHalf, colliderArmHalf]} />
       {children ? children : <Model {...props} />}
-      {accent ? <pointLight intensity={4} distance={2.5} color={props.color} /> : null}
+      {accent && enableAccentLights ? <pointLight intensity={4} distance={2.5} color={props.color} /> : null}
     </RigidBody>
   );
 }
 
-export function ConnectorClusterModel({ isActive = true, interactionEnabled = true, anchorSourceRef }) {
+export function ConnectorClusterModel({
+  isActive = true,
+  interactionEnabled = true,
+  anchorSourceRef,
+  maxConnectors = 9,
+  physicsStepDivisor = 1,
+  pointerUpdateDivisor = 1,
+  enableAccentLights = true,
+  centerPullStrengthMultiplier = 1,
+}) {
   const bodyMetaRef = useRef([]);
 
   const anchorPosRef = useRef(new THREE.Vector3());
@@ -172,19 +189,26 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
   const tempVec2Ref = useRef(new THREE.Vector3());
   const tempQuatRef = useRef(new THREE.Quaternion());
   const hasPrevAnchorRef = useRef(false);
+  const physicsStepCounterRef = useRef(0);
   const colliderScale = CONNECTOR_MODEL_SCALE / REFERENCE_CONNECTOR_MODEL_SCALE;
   const colliderCoreHalf = 0.38 * colliderScale;
   const colliderArmHalf = 1.27 * colliderScale;
 
   const connectors = useMemo(() => {
-    const palette = shuffle(0);
+    const connectorCount = Math.max(3, Math.min(9, Math.floor(maxConnectors || 9)));
+    const palette = shuffle(0).slice(0, connectorCount);
     const spawnPositions = generateSpawnPositions(palette.length);
     return palette.map((connector, index) => ({
       ...connector,
       position: spawnPositions[index],
       rotation: randomEulerRotation(),
     }));
-  }, []);
+  }, [maxConnectors]);
+
+  useEffect(() => {
+    bodyMetaRef.current = [];
+    hasPrevAnchorRef.current = false;
+  }, [connectors.length]);
 
   const registerBody = useMemo(
     () => (index, body, localPositionArray) => {
@@ -198,6 +222,12 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
   );
 
   useFrame((_, delta) => {
+    const safePhysicsDivisor = Math.max(1, Math.floor(physicsStepDivisor));
+    physicsStepCounterRef.current += 1;
+    if (safePhysicsDivisor > 1 && physicsStepCounterRef.current % safePhysicsDivisor !== 0) {
+      return;
+    }
+
     if (!anchorSourceRef?.current) {
       return;
     }
@@ -220,7 +250,10 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
     const centerX = anchorPosRef.current.x;
     const centerY = anchorPosRef.current.y;
     const centerZ = anchorPosRef.current.z;
-    const pullScale = CENTER_PULL_STRENGTH * Math.min(1.5, Math.max(0.25, delta * 60));
+    const pullScale =
+      CENTER_PULL_STRENGTH *
+      Math.max(0.15, centerPullStrengthMultiplier) *
+      Math.min(1.5, Math.max(0.25, delta * 60));
 
     for (const meta of bodyMetaRef.current) {
       if (!meta?.body) {
@@ -298,7 +331,11 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
     <group>
       <Suspense fallback={null}>
         <Physics gravity={[0, 0, 0]} timeStep="vary" interpolate={false}>
-          <PointerCollider enabled={isActive && interactionEnabled} anchorSourceRef={anchorSourceRef} />
+          <PointerCollider
+            enabled={isActive && interactionEnabled}
+            pointerUpdateDivisor={pointerUpdateDivisor}
+            anchorSourceRef={anchorSourceRef}
+          />
           {connectors.map((connector, index) => (
             <Connector
               key={index}
@@ -308,6 +345,7 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
               registerBody={registerBody}
               colliderCoreHalf={colliderCoreHalf}
               colliderArmHalf={colliderArmHalf}
+              enableAccentLights={enableAccentLights}
             />
           ))}
         </Physics>
