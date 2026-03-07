@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import SceneDiagnostics from "./components/SceneDiagnostics.jsx";
-import PortfolioDepthOfField from "./components/PortfolioDepthOfField.jsx";
 import Lights, { modelLightingPresets } from "./Lights.jsx";
 import { AWSModel } from "./models/AWSModel.jsx";
 import { PhoneModel } from "./models/PhoneModel.jsx";
@@ -44,16 +43,6 @@ export default function Experience({
       },
       { collapsed: true }
     ),
-    "Depth of Field": folder(
-      {
-        dofEnabled: { value: false },
-        dofFocus: { value: 10.5, min: 0.5, max: 40, step: 0.1 },
-        dofAperture: { value: 0.00018, min: 0.00001, max: 0.0012, step: 0.00001 },
-        dofMaxBlur: { value: 0.008, min: 0, max: 0.04, step: 0.0005 },
-        dofResolutionScale: { value: 1, min: 0.35, max: 1, step: 0.05 },
-      },
-      { collapsed: true }
-    ),
   });
 
   useEffect(() => {
@@ -88,15 +77,6 @@ export default function Experience({
     <>
       <color args={[props.backgroundColor]} attach={"background"} />
       <SceneDiagnostics enabled={props.performance || diagnosticsEnabled} />
-      {props.dofEnabled ? (
-        <PortfolioDepthOfField
-          enabled={props.dofEnabled}
-          focus={props.dofFocus}
-          aperture={props.dofAperture}
-          maxBlur={props.dofMaxBlur}
-          resolutionScale={props.dofResolutionScale}
-        />
-      ) : null}
       <Lights modelLighting={modelLightingPresets.phone} />
       <Environment preset={props.environmentPreset} />
 

@@ -10,6 +10,11 @@ const REFERENCE_CONNECTOR_MODEL_SCALE = 10;
 const CONNECTOR_CLUSTER_RADIUS = 3.4;
 const CONNECTOR_MIN_DISTANCE = 2.05;
 const CONNECTOR_MODEL_SCALE = 7.5;
+const ANCHOR_POSITION_EPSILON_SQ = 0.000001;
+const ANCHOR_ROTATION_EPSILON = 0.000001;
+const CENTER_PULL_EPSILON_SQ = 0.0004;
+const CENTER_PULL_STRENGTH = 0.2;
+const CENTER_PULL_MAX_IMPULSE = 0.35;
 
 const shuffle = (accent = 0) => [
   { color: "#444", roughness: 0.1 },
@@ -192,7 +197,7 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
     []
   );
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!anchorSourceRef?.current) {
       return;
     }
@@ -208,10 +213,14 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
 
     invPrevQuatRef.current.copy(prevAnchorQuatRef.current).invert();
     deltaQuatRef.current.copy(anchorQuatRef.current).multiply(invPrevQuatRef.current);
+    const anchorMoved =
+      anchorPosRef.current.distanceToSquared(prevAnchorPosRef.current) > ANCHOR_POSITION_EPSILON_SQ ||
+      1 - Math.abs(anchorQuatRef.current.dot(prevAnchorQuatRef.current)) > ANCHOR_ROTATION_EPSILON;
 
     const centerX = anchorPosRef.current.x;
     const centerY = anchorPosRef.current.y;
     const centerZ = anchorPosRef.current.z;
+    const pullScale = CENTER_PULL_STRENGTH * Math.min(1.5, Math.max(0.25, delta * 60));
 
     for (const meta of bodyMetaRef.current) {
       if (!meta?.body) {
@@ -240,7 +249,7 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
         meta.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         meta.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
         meta.initialized = true;
-      } else {
+      } else if (anchorMoved) {
         const t = meta.body.translation();
         const moved = tempVecRef.current
           .set(t.x, t.y, t.z)
@@ -268,7 +277,16 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
       const translation = meta.body.translation();
       const impulse = tempVec2Ref.current
         .set(centerX - translation.x, centerY - translation.y, centerZ - translation.z)
-        .multiplyScalar(0.2);
+        .multiplyScalar(pullScale);
+
+      const impulseLengthSq = impulse.lengthSq();
+      if (impulseLengthSq < CENTER_PULL_EPSILON_SQ) {
+        continue;
+      }
+      if (impulseLengthSq > CENTER_PULL_MAX_IMPULSE * CENTER_PULL_MAX_IMPULSE) {
+        impulse.multiplyScalar(CENTER_PULL_MAX_IMPULSE / Math.sqrt(impulseLengthSq));
+      }
+
       meta.body.applyImpulse({ x: impulse.x, y: impulse.y, z: impulse.z }, true);
     }
 
@@ -279,7 +297,7 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
   return (
     <group>
       <Suspense fallback={null}>
-        <Physics gravity={[0, 0, 0]}>
+        <Physics gravity={[0, 0, 0]} timeStep="vary" interpolate={false}>
           <PointerCollider enabled={isActive && interactionEnabled} anchorSourceRef={anchorSourceRef} />
           {connectors.map((connector, index) => (
             <Connector
