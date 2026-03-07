@@ -163,9 +163,9 @@
   align-self: flex-start;
   justify-content: flex-start;
   gap: 8px;
-  margin-top: -12px;
-  margin-left: -4px;
-  margin-bottom: 12px;
+  margin-top: 0;
+  margin-left: 0;
+  margin-bottom: 14px;
 }
 
 .site-top-nav.site-top-nav-inline .site-nav-btn {

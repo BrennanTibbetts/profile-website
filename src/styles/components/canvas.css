@@ -74,3 +74,40 @@
   color: rgba(248, 248, 248, 0.62);
   font-size: 10px;
 }
+
+.click-region-debug-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.click-region-debug-zone {
+  position: absolute;
+  border: 1px dashed rgba(255, 255, 255, 0.42);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.click-region-debug-zone span {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.84);
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.click-region-debug-zone-left {
+  border-color: rgba(118, 168, 255, 0.6);
+  background: rgba(86, 128, 255, 0.08);
+}
+
+.click-region-debug-zone-right {
+  border-color: rgba(255, 219, 123, 0.62);
+  background: rgba(255, 199, 82, 0.08);
+}

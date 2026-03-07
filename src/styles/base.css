@@ -22,6 +22,11 @@ body {
   color: #fff;
   height: 100%;
   background-color: #000000;
+  --glass-surface-bg: linear-gradient(165deg, rgba(14, 14, 14, 0.86) 0%, rgba(6, 6, 6, 0.68) 100%);
+  --glass-surface-border: rgba(255, 255, 255, 0.14);
+  --glass-surface-highlight: rgba(255, 255, 255, 0.08);
+  --glass-surface-shadow: 0 24px 58px rgba(0, 0, 0, 0.56);
+  --glass-surface-blur: 16px;
   --contrast-bg: #ffffff;
   --contrast-border: rgba(0,0,0,0.08);
   --contrast-color: #111;

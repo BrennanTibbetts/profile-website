@@ -16,6 +16,7 @@ export function usePointerDrag(gl, onSwipeLeft, onSwipeRight, onModelClick, isMo
   const startX = useRef(0);
   const dragOffset = useRef(0);
   const isClick = useRef(true);
+  const suppressClickUntil = useRef(0);
 
   useEffect(() => {
     if (!gl) return;
@@ -44,6 +45,12 @@ export function usePointerDrag(gl, onSwipeLeft, onSwipeRight, onModelClick, isMo
     const onPointerUp = (e) => {
       if (!isDragging.current) return;
       isDragging.current = false;
+
+      // If this interaction was a drag, suppress the follow-up click event so
+      // parent click-navigation handlers do not trigger on drag release.
+      if (!isClick.current) {
+        suppressClickUntil.current = performance.now() + 260;
+      }
 
       // Handle click (not drag)
       if (isClick.current && onModelClick) {
@@ -75,14 +82,23 @@ export function usePointerDrag(gl, onSwipeLeft, onSwipeRight, onModelClick, isMo
       dragOffset.current = 0;
     };
 
+    const onCanvasClickCapture = (e) => {
+      if (performance.now() < suppressClickUntil.current) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
     canvas.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
+    canvas.addEventListener("click", onCanvasClickCapture, true);
 
     return () => {
       canvas.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("click", onCanvasClickCapture, true);
     };
   }, [gl, onSwipeLeft, onSwipeRight, onModelClick, isMobile]);
 

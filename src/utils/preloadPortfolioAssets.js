@@ -3,6 +3,7 @@ import { useEnvironment, useGLTF } from "@react-three/drei";
 const PORTFOLIO_MODELS = [
   "/assets/models/phone/scene.gltf",
   "/assets/models/aws/scene.gltf",
+  "/assets/models/connector/c-transformed.glb",
 ];
 
 let hasPreloadedPortfolioAssets = false;
