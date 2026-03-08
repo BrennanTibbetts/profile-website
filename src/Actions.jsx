@@ -15,7 +15,7 @@ export default function Actions({ viewControlProps, hasSwiped, hasClicked, isMob
               <div className="text">CLICK TO LEARN MORE ABOUT {projects[viewIndex]?.subject}</div>
           </div>
           <div className={`swipe-hint ${!hasClicked ? 'waiting' : ''} ${hasSwiped ? 'fade-out' : ''}`}>
-              &lt; SWIPE &gt;
+              SWIPE UP / DOWN
           </div>
         </div>
       )}

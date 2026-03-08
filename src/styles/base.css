@@ -31,3 +31,9 @@ body {
   --contrast-border: rgba(0,0,0,0.08);
   --contrast-color: #111;
 }
+
+#leva__root {
+  top: 12px !important;
+  left: 12px !important;
+  right: auto !important;
+}

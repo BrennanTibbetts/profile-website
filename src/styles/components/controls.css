@@ -41,7 +41,43 @@
     display: none;
 }
 
-.carousel-title-panel {
+.mobile-interaction-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  left: 50%;
+  top: 66.5%;
+  transform: translate(-50%, -50%);
+  z-index: 32;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(8, 8, 8, 0.74);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  min-width: 170px;
+  min-height: 44px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.mobile-interaction-toggle.is-active {
+  border-color: rgba(255, 191, 102, 0.72);
+  background: rgba(255, 155, 56, 0.2);
+}
+
+.mobile-interaction-toggle:active {
+  transform: translate(-50%, -50%);
+}
+
+.slide-title-panel {
   position: absolute;
   top: 18px;
   left: 50%;
@@ -61,7 +97,7 @@
   text-align: center;
 }
 
-.carousel-title-text {
+.slide-title-text {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
@@ -75,26 +111,26 @@
   will-change: opacity, transform, filter;
 }
 
-.carousel-title-text.is-leaving {
+.slide-title-text.is-leaving {
   opacity: 0;
   transform: translateY(8px);
   filter: blur(1.7px);
 }
 
-.carousel-title-text.is-entering {
+.slide-title-text.is-entering {
   opacity: 0;
   transform: translateY(-8px);
   filter: blur(1.7px);
 }
 
-.carousel-title-text.is-entered {
+.slide-title-text.is-entered {
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .carousel-title-text {
+  .slide-title-text {
     transition: none;
     transform: none;
     filter: none;

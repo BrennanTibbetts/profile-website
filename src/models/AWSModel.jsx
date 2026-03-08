@@ -1,11 +1,9 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import { useMouseTracking } from "../hooks/useMouseTracking";
 
 const AWS_LOGO_PATH = "/assets/models/aws/aws.glb";
 export function AWSModel({
-  isActive = true,
   logoScale = 0.01,
   arrowColor = "#ff9500",
   textColor = "#ffffff",
@@ -18,13 +16,6 @@ export function AWSModel({
   ...props
 }) {
   const { nodes: logoNodes } = useGLTF(AWS_LOGO_PATH);
-
-  const modelOffset = useMemo(() => {
-    const offset = new THREE.Quaternion();
-    offset.setFromEuler(new THREE.Euler(0.1, 0, 0));
-    return offset;
-  }, []);
-  const modelRef = useMouseTracking(new THREE.Vector3(0, 0, 1), modelOffset, isActive);
 
   const arrowMaterial = useMemo(
     () =>
@@ -51,7 +42,7 @@ export function AWSModel({
   );
 
   return (
-    <group {...props} dispose={null} ref={modelRef}>
+    <group {...props} dispose={null}>
       <group scale={logoScale}>
         <mesh
           geometry={logoNodes.ArrowBody.geometry}

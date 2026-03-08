@@ -1,15 +1,13 @@
 import { useFBX, useTexture } from "@react-three/drei";
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { useMouseTracking } from "../hooks/useMouseTracking";
 
 const XS_MAX_2_MODEL_PATH = "/assets/models/XS%20Max%202/iPhone%20XS%20Max.fbx";
 const FBX_UNIT_NORMALIZATION = 0.01;
 const XS_MAX_2_TEXTURE_PATHS = {
-  mic: "/assets/models/XS%20Max%202/textures/Mic-Tex.png",
-  flash: "/assets/models/XS%20Max%202/textures/Flash.jpg",
   lockXs3: "/assets/models/XS%20Max%202/textures/LockScreen-xs3.png",
 };
+const PHONE_HIDDEN_MATERIAL_NAMES = new Set(["back", "logo", "lens", "mic", "flash"]);
 const PHONE_SURFACE_MATERIAL_PRESETS = {
   graphite: {
     color: "#3f444b",
@@ -116,10 +114,23 @@ function applyMaterialPreset(material, presetName, stateKey) {
   material.needsUpdate = true;
 }
 
+function hideMaterialSurface(material, stateKey) {
+  if (!material.userData[stateKey]) {
+    material.userData[stateKey] = {
+      visible: material.visible ?? true,
+      map: material.map ?? null,
+      emissiveMap: material.emissiveMap ?? null,
+    };
+  }
+
+  material.visible = false;
+  material.map = null;
+  material.emissiveMap = null;
+  material.needsUpdate = true;
+}
+
 export function XSMax2Model({
-  isActive = true,
   screenEmissiveIntensity = 0.35,
-  backMaterialPreset = "graphite",
   trimMaterialPreset = "original",
   edgeMaterialPreset = "matchTrim",
   glassMaterialPreset = "matchTrim",
@@ -131,6 +142,7 @@ export function XSMax2Model({
 
   const modelScene = useMemo(() => {
     const clone = scene.clone(true);
+
     clone.traverse((node) => {
       if (!node.isMesh) {
         return;
@@ -142,16 +154,9 @@ export function XSMax2Model({
         node.material = node.material.clone();
       }
     });
+
     return clone;
   }, [scene]);
-
-  const phoneOffset = useMemo(() => {
-    const offset = new THREE.Quaternion();
-    offset.setFromEuler(new THREE.Euler(-0.08, 0, 0.02));
-    return offset;
-  }, []);
-  const forwardAxis = useMemo(() => new THREE.Vector3(0, 1, 0), []);
-  const phoneRef = useMouseTracking(forwardAxis, phoneOffset, isActive);
 
   useEffect(() => {
     Object.entries(textures).forEach(([key, texture]) => {
@@ -189,8 +194,8 @@ export function XSMax2Model({
 
         const materialName = (material.name ?? "").toLowerCase();
 
-        if (materialName.includes("back") || material.name === "Back") {
-          applyMaterialPreset(material, backMaterialPreset, "originalBackMaterial");
+        if (PHONE_HIDDEN_MATERIAL_NAMES.has(materialName)) {
+          hideMaterialSurface(material, "originalHiddenMaterialState");
           return;
         }
 
@@ -232,24 +237,12 @@ export function XSMax2Model({
           material.needsUpdate = true;
           return;
         }
-
-        if ((materialName.includes("mic") || material.name === "Mic") && textures.mic) {
-          material.map = textures.mic;
-          material.needsUpdate = true;
-          return;
-        }
-
-        if ((materialName.includes("flash") || material.name === "Flash") && textures.flash) {
-          material.map = textures.flash;
-          material.needsUpdate = true;
-        }
       });
     });
   }, [
     modelScene,
     textures,
     screenEmissiveIntensity,
-    backMaterialPreset,
     trimMaterialPreset,
     edgeMaterialPreset,
     glassMaterialPreset,
@@ -257,7 +250,7 @@ export function XSMax2Model({
   ]);
 
   return (
-    <group {...props} dispose={null} ref={phoneRef}>
+    <group {...props} dispose={null}>
       <group scale={FBX_UNIT_NORMALIZATION}>
         <primitive object={modelScene} />
       </group>

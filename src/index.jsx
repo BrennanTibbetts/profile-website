@@ -4,6 +4,7 @@ import "./styles/index.css";
 import HomePage from "./pages/HomePage";
 import PortfolioPage from "./pages/PortfolioPage";
 import { BlogIndexPage, BlogPostPage } from "./pages/BlogPage";
+import { preloadPortfolioAssets } from "./utils/preloadPortfolioAssets";
 
 function normalizePathname(pathname) {
   if (!pathname) {
@@ -85,6 +86,24 @@ function App() {
   const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
 
   const route = useMemo(() => parseRoute(pathname), [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const startPreload = () => {
+      preloadPortfolioAssets();
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(startPreload, { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(startPreload, 120);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {

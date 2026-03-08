@@ -1,69 +1,129 @@
-import { Canvas, useThree } from "@react-three/fiber";
-import { useState, useEffect, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Leva, folder, useControls } from "leva";
+import * as THREE from "three";
 import Experience from "../Experience";
 import Header from "../Header";
 import Actions from "../Actions";
 import ViewInfo from "../ViewInfo";
 import MobileOverlay from "../components/MobileOverlay";
 import SiteTopNav from "../components/SiteTopNav";
-import CarouselTitlePanel from "../components/CarouselTitlePanel";
+import SlideTitlePanel from "../components/SlideTitlePanel";
 import { projects } from "../projects";
 import { useViewState } from "../hooks/useViewState";
-import { useSwipeGesture } from "../hooks/useSwipeGesture";
 import { useDiagnosticsEnabled } from "../hooks/useDiagnosticsEnabled";
+import { DESKTOP_SLIDE_SPACING, MOBILE_SLIDE_SPACING } from "../constants/slideLayout";
 
 const LEVA_THEME = {
   sizes: {
-    rootWidth: "360px",
-    controlWidth: "200px",
+    rootWidth: "820px",
+    controlWidth: "460px",
   },
 };
 
-function CameraController({ isMobile }) {
+const SWIPE_PROGRESS_DISTANCE = 0.72;
+const SWIPE_COMMIT_THRESHOLD = 0.24;
+const DRAG_DEADZONE_PX = 6;
+const SLIDE_SWIPE_ENABLED = true;
+const DESKTOP_SCROLL_COMMIT_THRESHOLD = 44;
+const DESKTOP_SCROLL_ACCUM_RESET_MS = 170;
+const DESKTOP_SCROLL_INERTIA_RELEASE_MS = 150;
+const CONNECTOR_SLIDE_INDEX = 2;
+
+const mod = (value, n) => ((value % n) + n) % n;
+
+function shortestWrappedDelta(rawDelta, total) {
+  let delta = mod(rawDelta, total);
+  if (delta > total / 2) {
+    delta -= total;
+  }
+  return delta;
+}
+
+function CameraController({ isMobile, laneIndex, slideOffsetRef, isDraggingRef, onMotionStateChange }) {
   const { camera } = useThree();
+  const hasInitializedRef = useRef(false);
+  const wasMovingRef = useRef(false);
 
   useEffect(() => {
+    if (!hasInitializedRef.current) {
+      const initialIndex = laneIndex + (slideOffsetRef.current || 0);
+      camera.position.x = isMobile ? 0 : initialIndex * DESKTOP_SLIDE_SPACING;
+      camera.position.y = isMobile ? -initialIndex * MOBILE_SLIDE_SPACING : 0;
+      camera.position.z = isMobile ? 18 : 14;
+      hasInitializedRef.current = true;
+      return;
+    }
+
     camera.position.z = isMobile ? 18 : 14;
-  }, [isMobile, camera]);
+  }, [isMobile, laneIndex, camera, slideOffsetRef]);
+
+  useFrame((_, delta) => {
+    if (!isDraggingRef.current) {
+      const nextOffset = THREE.MathUtils.damp(slideOffsetRef.current, 0, 11, delta);
+      slideOffsetRef.current = Math.abs(nextOffset) < 0.0005 ? 0 : nextOffset;
+    }
+
+    const visualIndex = laneIndex + slideOffsetRef.current;
+    const targetX = isMobile ? 0 : visualIndex * DESKTOP_SLIDE_SPACING;
+    const targetY = isMobile ? -visualIndex * MOBILE_SLIDE_SPACING : 0;
+    const targetZ = isMobile ? 18 : 14;
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 7, delta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 8, delta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 8, delta);
+
+    const isMoving =
+      isDraggingRef.current ||
+      Math.abs(slideOffsetRef.current) > 0.0015 ||
+      Math.abs(camera.position.x - targetX) > 0.015 ||
+      Math.abs(camera.position.y - targetY) > 0.015 ||
+      Math.abs(camera.position.z - targetZ) > 0.015;
+
+    if (isMoving !== wasMovingRef.current) {
+      wasMovingRef.current = isMoving;
+      onMotionStateChange?.(isMoving);
+    }
+  });
 
   return null;
 }
 
-const clamp01 = (value) => Math.min(1, Math.max(0, value));
-
-function normalizeRange(a, b) {
-  return [clamp01(Math.min(a, b)), clamp01(Math.max(a, b))];
-}
-
 export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [mobileConnectorInteractionEnabled, setMobileConnectorInteractionEnabled] = useState(false);
   const [diagnosticsEnabled] = useDiagnosticsEnabled();
   const canvasContainerRef = useRef(null);
-  const lastClickNavAtRef = useRef(0);
-  const clickNavControls = useControls("Experience", {
-    "Click Navigation": folder(
+  const gestureRef = useRef({
+    active: false,
+    pointerId: null,
+    startPrimary: 0,
+    startOffset: 0,
+    moved: false,
+  });
+  const slideOffsetRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const isPresentationDraggingRef = useRef(false);
+  const suppressMobileClickUntilRef = useRef(0);
+  const isCameraAnimatingRef = useRef(false);
+  const desktopWheelRef = useRef({
+    accumulated: 0,
+    resetTimerId: null,
+    inertiaLock: false,
+    inertiaReleaseTimerId: null,
+  });
+  const layoutControls = useControls("Experience", {
+    "Desktop Layout": folder(
       {
-        clickNavEnabled: { value: true },
-        showClickRegions: { value: false },
-        clickNavCooldownMs: { value: 220, min: 0, max: 900, step: 10 },
-        regionYMin: { value: 0.16, min: 0, max: 1, step: 0.01 },
-        regionYMax: { value: 0.88, min: 0, max: 1, step: 0.01 },
-        leftRegionXMin: { value: 0.0, min: 0, max: 1, step: 0.01 },
-        leftRegionXMax: { value: 0.42, min: 0, max: 1, step: 0.01 },
-        rightRegionXMin: { value: 0.58, min: 0, max: 1, step: 0.01 },
-        rightRegionXMax: { value: 1.0, min: 0, max: 1, step: 0.01 },
+        desktopLeftPanelWidthPercent: { value: 58, min: 26, max: 72, step: 1 },
       },
       { collapsed: true }
     ),
   });
 
   const {
-    slideIndex,
-    setSlideIndex,
     viewIndex,
-    prev,
-    next,
+    prev: prevView,
+    next: nextView,
     showLeva,
     showInfo,
     setShowInfo,
@@ -73,12 +133,24 @@ export default function PortfolioPage({ pathname, navigate }) {
     clickedViews,
     markViewAsClicked,
   } = useViewState();
+  const totalSlides = Math.max(projects.length, 1);
+  const [laneIndex, setLaneIndex] = useState(() => viewIndex);
+  const isConnectorSlide = viewIndex === CONNECTOR_SLIDE_INDEX;
+  const isConnectorInteractionMode =
+    isMobile && isConnectorSlide && mobileConnectorInteractionEnabled;
+  const isMobileSwipeEnabled = SLIDE_SWIPE_ENABLED && isMobile && !isConnectorInteractionMode;
 
-  const { onTouchStart, onTouchEnd } = useSwipeGesture(next, prev, !showInfo && !showBio);
+  const desktopLeftPanelWidthPercent = Math.max(26, Math.min(72, layoutControls.desktopLeftPanelWidthPercent));
 
-  const [zoneYMin, zoneYMax] = normalizeRange(clickNavControls.regionYMin, clickNavControls.regionYMax);
-  const [leftXMin, leftXMax] = normalizeRange(clickNavControls.leftRegionXMin, clickNavControls.leftRegionXMax);
-  const [rightXMin, rightXMax] = normalizeRange(clickNavControls.rightRegionXMin, clickNavControls.rightRegionXMax);
+  const goNext = useCallback(() => {
+    setLaneIndex((index) => index + 1);
+    nextView();
+  }, [nextView]);
+
+  const goPrev = useCallback(() => {
+    setLaneIndex((index) => index - 1);
+    prevView();
+  }, [prevView]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -86,8 +158,86 @@ export default function PortfolioPage({ pathname, navigate }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleCanvasRegionClick = (event) => {
-    if (isMobile || showInfo || showBio || !clickNavControls.clickNavEnabled) {
+  useEffect(() => {
+    if (!isMobile && mobileConnectorInteractionEnabled) {
+      setMobileConnectorInteractionEnabled(false);
+    }
+  }, [isMobile, mobileConnectorInteractionEnabled]);
+
+  useEffect(() => () => {
+    if (desktopWheelRef.current.resetTimerId !== null) {
+      window.clearTimeout(desktopWheelRef.current.resetTimerId);
+      desktopWheelRef.current.resetTimerId = null;
+    }
+    if (desktopWheelRef.current.inertiaReleaseTimerId !== null) {
+      window.clearTimeout(desktopWheelRef.current.inertiaReleaseTimerId);
+      desktopWheelRef.current.inertiaReleaseTimerId = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    setLaneIndex((currentLaneIndex) => {
+      const currentModIndex = mod(currentLaneIndex, totalSlides);
+      const delta = shortestWrappedDelta(viewIndex - currentModIndex, totalSlides);
+      if (delta === 0) {
+        return currentLaneIndex;
+      }
+      return currentLaneIndex + delta;
+    });
+  }, [viewIndex, totalSlides]);
+
+  const completeGesture = (event, cancelled = false) => {
+    if (!isMobileSwipeEnabled) {
+      return;
+    }
+
+    const gesture = gestureRef.current;
+    if (!gesture.active || gesture.pointerId !== event.pointerId) {
+      return;
+    }
+
+    if (event.currentTarget?.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    let didCommitSlide = false;
+    if (!cancelled) {
+      const releaseOffset = slideOffsetRef.current;
+      if (releaseOffset > SWIPE_COMMIT_THRESHOLD) {
+        goNext();
+        slideOffsetRef.current = releaseOffset - 1;
+        didCommitSlide = true;
+      } else if (releaseOffset < -SWIPE_COMMIT_THRESHOLD) {
+        goPrev();
+        slideOffsetRef.current = releaseOffset + 1;
+        didCommitSlide = true;
+      }
+    }
+
+    if (gesture.moved || didCommitSlide) {
+      suppressMobileClickUntilRef.current = performance.now() + 300;
+    }
+
+    gestureRef.current = {
+      active: false,
+      pointerId: null,
+      startPrimary: 0,
+      startOffset: slideOffsetRef.current,
+      moved: false,
+    };
+    isDraggingRef.current = false;
+  };
+
+  const handleCanvasPointerDown = (event) => {
+    if (!isMobileSwipeEnabled) {
+      return;
+    }
+
+    if (showInfo || showBio) {
+      return;
+    }
+
+    if (isPresentationDraggingRef.current) {
       return;
     }
 
@@ -100,55 +250,224 @@ export default function PortfolioPage({ pathname, navigate }) {
       }
     }
 
-    const container = canvasContainerRef.current;
-    if (!container) {
+    if (event.currentTarget?.setPointerCapture) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    const primary = isMobile ? event.clientY : event.clientX;
+    const clampedStartOffset = Math.max(-1.2, Math.min(1.2, slideOffsetRef.current));
+    slideOffsetRef.current = clampedStartOffset;
+    gestureRef.current = {
+      active: true,
+      pointerId: event.pointerId,
+      startPrimary: primary,
+      startOffset: clampedStartOffset,
+      moved: false,
+    };
+    isDraggingRef.current = true;
+  };
+
+  const handleCanvasPointerMove = (event) => {
+    if (!isMobileSwipeEnabled) {
       return;
     }
 
-    const rect = container.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) {
+    if (isPresentationDraggingRef.current) {
       return;
     }
 
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    if (y < zoneYMin || y > zoneYMax) {
+    const gesture = gestureRef.current;
+    if (!gesture.active || gesture.pointerId !== event.pointerId || showInfo || showBio) {
       return;
     }
 
-    const now = performance.now();
-    if (now - lastClickNavAtRef.current < clickNavControls.clickNavCooldownMs) {
-      return;
-    }
+    const primary = isMobile ? event.clientY : event.clientX;
+    const deltaPrimary = gesture.startPrimary - primary;
+    const viewportPrimary = Math.max(1, isMobile ? window.innerHeight : window.innerWidth);
+    const deltaSlides = deltaPrimary / (viewportPrimary * SWIPE_PROGRESS_DISTANCE);
+    slideOffsetRef.current = Math.max(-1.2, Math.min(1.2, gesture.startOffset + deltaSlides));
 
-    if (x >= leftXMin && x <= leftXMax) {
-      lastClickNavAtRef.current = now;
-      prev();
-      return;
-    }
-
-    if (x >= rightXMin && x <= rightXMax) {
-      lastClickNavAtRef.current = now;
-      next();
+    if (Math.abs(deltaPrimary) > DRAG_DEADZONE_PX) {
+      gesture.moved = true;
     }
   };
 
-  const leftRegionStyle = {
-    left: `${leftXMin * 100}%`,
-    top: `${zoneYMin * 100}%`,
-    width: `${Math.max(0, (leftXMax - leftXMin) * 100)}%`,
-    height: `${Math.max(0, (zoneYMax - zoneYMin) * 100)}%`,
+  const handleCanvasPointerUp = (event) => {
+    if (!isMobileSwipeEnabled) {
+      return;
+    }
+
+    if (isPresentationDraggingRef.current) {
+      return;
+    }
+    completeGesture(event, false);
   };
 
-  const rightRegionStyle = {
-    left: `${rightXMin * 100}%`,
-    top: `${zoneYMin * 100}%`,
-    width: `${Math.max(0, (rightXMax - rightXMin) * 100)}%`,
-    height: `${Math.max(0, (zoneYMax - zoneYMin) * 100)}%`,
+  const handleCanvasPointerCancel = (event) => {
+    if (!isMobileSwipeEnabled) {
+      return;
+    }
+
+    if (isPresentationDraggingRef.current) {
+      return;
+    }
+    completeGesture(event, true);
   };
+
+  const handleCanvasClick = (event) => {
+    if (showInfo || showBio) {
+      return;
+    }
+
+    if (event.target instanceof Element) {
+      const interactiveTarget = event.target.closest(
+        ".view-controls, .view-btn, .btn, .mobile-info-btn, button, a, input, textarea, select"
+      );
+      if (interactiveTarget) {
+        return;
+      }
+    }
+
+    if (!isMobile) {
+      return;
+    }
+
+    if (isMobile && mobileConnectorInteractionEnabled) {
+      return;
+    }
+
+    if (performance.now() < suppressMobileClickUntilRef.current) {
+      return;
+    }
+
+    setShowInfo(true);
+    markViewAsClicked(viewIndex);
+  };
+
+  const handleStartConnectorInteraction = useCallback(() => {
+    setMobileConnectorInteractionEnabled(true);
+    gestureRef.current.active = false;
+    gestureRef.current.pointerId = null;
+    gestureRef.current.moved = false;
+    isDraggingRef.current = false;
+    slideOffsetRef.current = 0;
+  }, []);
+
+  const handleStopConnectorInteraction = useCallback(() => {
+    setMobileConnectorInteractionEnabled(false);
+    gestureRef.current.active = false;
+    gestureRef.current.pointerId = null;
+    gestureRef.current.moved = false;
+    isDraggingRef.current = false;
+  }, []);
+
+  const handleCanvasWheel = (event) => {
+    if (isMobile) {
+      return;
+    }
+
+    if (showInfo || showBio || isPresentationDraggingRef.current || event.ctrlKey) {
+      return;
+    }
+
+    const dominantDelta =
+      Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+    if (!Number.isFinite(dominantDelta) || dominantDelta === 0) {
+      return;
+    }
+
+    event.preventDefault();
+
+    let normalizedDelta = dominantDelta;
+    if (event.deltaMode === 1) {
+      normalizedDelta *= 16;
+    } else if (event.deltaMode === 2) {
+      normalizedDelta *= Math.max(window.innerHeight, 1);
+    }
+
+    const wheelState = desktopWheelRef.current;
+
+    const queueInertiaRelease = () => {
+      if (wheelState.inertiaReleaseTimerId !== null) {
+        window.clearTimeout(wheelState.inertiaReleaseTimerId);
+      }
+      wheelState.inertiaReleaseTimerId = window.setTimeout(() => {
+        wheelState.inertiaLock = false;
+        wheelState.accumulated = 0;
+        wheelState.inertiaReleaseTimerId = null;
+      }, DESKTOP_SCROLL_INERTIA_RELEASE_MS);
+    };
+
+    if (wheelState.inertiaLock) {
+      queueInertiaRelease();
+      return;
+    }
+
+    if (isCameraAnimatingRef.current) {
+      wheelState.accumulated = 0;
+      wheelState.inertiaLock = true;
+      queueInertiaRelease();
+      return;
+    }
+
+    wheelState.accumulated += normalizedDelta;
+    if (Math.abs(wheelState.accumulated) < DESKTOP_SCROLL_COMMIT_THRESHOLD) {
+      if (wheelState.resetTimerId !== null) {
+        window.clearTimeout(wheelState.resetTimerId);
+      }
+      wheelState.resetTimerId = window.setTimeout(() => {
+        wheelState.accumulated = 0;
+        wheelState.resetTimerId = null;
+      }, DESKTOP_SCROLL_ACCUM_RESET_MS);
+      return;
+    }
+
+    if (wheelState.accumulated > 0) {
+      goNext();
+    } else {
+      goPrev();
+    }
+
+    wheelState.accumulated = 0;
+    if (wheelState.resetTimerId !== null) {
+      window.clearTimeout(wheelState.resetTimerId);
+      wheelState.resetTimerId = null;
+    }
+    wheelState.inertiaLock = true;
+    queueInertiaRelease();
+    isCameraAnimatingRef.current = true;
+  };
+
+  const handleCameraMotionStateChange = useCallback((isMoving) => {
+    isCameraAnimatingRef.current = isMoving;
+    if (!isMoving) {
+      const wheelState = desktopWheelRef.current;
+      wheelState.accumulated = 0;
+      if (wheelState.resetTimerId !== null) {
+        window.clearTimeout(wheelState.resetTimerId);
+        wheelState.resetTimerId = null;
+      }
+      wheelState.inertiaLock = true;
+      if (wheelState.inertiaReleaseTimerId !== null) {
+        window.clearTimeout(wheelState.inertiaReleaseTimerId);
+      }
+      wheelState.inertiaReleaseTimerId = window.setTimeout(() => {
+        wheelState.inertiaLock = false;
+        wheelState.accumulated = 0;
+        wheelState.inertiaReleaseTimerId = null;
+      }, DESKTOP_SCROLL_INERTIA_RELEASE_MS);
+    }
+  }, []);
+
+  const leftPanelStyle = isMobile
+    ? undefined
+    : {
+        width: `${desktopLeftPanelWidthPercent}%`,
+        flex: `0 0 ${desktopLeftPanelWidthPercent}%`,
+      };
 
   return (
-    <div className="main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="main">
       <div className="landscape-warning">
         <p>Please rotate your device to portrait mode</p>
       </div>
@@ -158,7 +477,7 @@ export default function PortfolioPage({ pathname, navigate }) {
 
       <MobileOverlay type="bio" isOpen={showBio} onClose={() => setShowBio(false)} />
 
-      <aside className="panel-left">
+      <aside className="panel-left" style={leftPanelStyle}>
         {!isMobile ? (
           <SiteTopNav
             pathname={pathname}
@@ -175,14 +494,14 @@ export default function PortfolioPage({ pathname, navigate }) {
           <ViewInfo viewIndex={viewIndex} />
         </div>
         <Actions
-          viewControlProps={{ prev, next, viewIndex }}
+          viewControlProps={{ prev: goPrev, next: goNext, viewIndex }}
           hasSwiped={hasSwiped}
           hasClicked={clickedViews.has(viewIndex)}
           isMobile={isMobile}
         />
       </aside>
 
-      {isMobile ? (
+      {isMobile && !isConnectorInteractionMode ? (
         <button
           className="mobile-info-btn"
           onClick={() => {
@@ -195,47 +514,77 @@ export default function PortfolioPage({ pathname, navigate }) {
       ) : null}
 
       <main className="panel-right">
-        <div ref={canvasContainerRef} className="canvas-container" onClick={handleCanvasRegionClick}>
-          {!isMobile ? <CarouselTitlePanel title={projects[viewIndex]?.title ?? ""} /> : null}
+        <div
+          ref={canvasContainerRef}
+          className="canvas-container"
+          onClick={handleCanvasClick}
+          onWheel={!isMobile ? handleCanvasWheel : undefined}
+          onPointerDown={isMobileSwipeEnabled ? handleCanvasPointerDown : undefined}
+          onPointerMove={isMobileSwipeEnabled ? handleCanvasPointerMove : undefined}
+          onPointerUp={isMobileSwipeEnabled ? handleCanvasPointerUp : undefined}
+          onPointerCancel={isMobileSwipeEnabled ? handleCanvasPointerCancel : undefined}
+        >
+          {!isMobile ? <SlideTitlePanel title={projects[viewIndex]?.title ?? ""} /> : null}
+          {isMobile && isConnectorSlide ? (
+            <button
+              type="button"
+              className={`mobile-interaction-toggle ${isConnectorInteractionMode ? "is-active" : ""}`}
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (isConnectorInteractionMode) {
+                  handleStopConnectorInteraction();
+                  return;
+                }
+                handleStartConnectorInteraction();
+              }}
+            >
+              {isConnectorInteractionMode ? "stop interaction" : "click to Interact"}
+            </button>
+          ) : null}
           <Canvas
-            camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}
+            camera={{
+              position: [0, 0, isMobile ? 18 : 14],
+              fov: 45,
+            }}
             dpr={[1, 1.25]}
             gl={{ powerPreference: "high-performance" }}
           >
-            <CameraController isMobile={isMobile} />
+            <CameraController
+              isMobile={isMobile}
+              laneIndex={laneIndex}
+              slideOffsetRef={slideOffsetRef}
+              isDraggingRef={isDraggingRef}
+              onMotionStateChange={handleCameraMotionStateChange}
+            />
             <Experience
               diagnosticsEnabled={diagnosticsEnabled}
-              slideIndex={slideIndex}
-              setSlideIndex={(val) => {
-                setSlideIndex(val);
+              viewIndex={viewIndex}
+              layoutIndex={laneIndex}
+              isMobile={isMobile}
+              disableConnectorInteraction={isMobile && !mobileConnectorInteractionEnabled}
+              onPresentationDragStart={() => {
+                isPresentationDraggingRef.current = true;
+                gestureRef.current.active = false;
+                gestureRef.current.pointerId = null;
+                isDraggingRef.current = false;
               }}
-              onModelClick={() => {
-                if (isMobile) {
-                  setShowInfo(true);
-                  markViewAsClicked(viewIndex);
-                }
+              onPresentationDragEnd={() => {
+                isPresentationDraggingRef.current = false;
               }}
             />
           </Canvas>
-          {!isMobile && clickNavControls.showClickRegions ? (
-            <div className="click-region-debug-layer" aria-hidden="true">
-              <div className="click-region-debug-zone click-region-debug-zone-left" style={leftRegionStyle}>
-                <span>PREV</span>
-              </div>
-              <div className="click-region-debug-zone click-region-debug-zone-right" style={rightRegionStyle}>
-                <span>NEXT</span>
-              </div>
-            </div>
-          ) : null}
 
           <div className="view-controls desktop-only">
-            <button className="btn view-btn" onClick={prev} aria-label="Previous view">
+            <button className="btn view-btn" onClick={goPrev} aria-label="Previous view">
               ‹
             </button>
             <div className="view-indicator">
               {viewIndex + 1} / {projects.length}
             </div>
-            <button className="btn view-btn" onClick={next} aria-label="Next view">
+            <button className="btn view-btn" onClick={goNext} aria-label="Next view">
               ›
             </button>
           </div>

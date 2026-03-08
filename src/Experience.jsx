@@ -1,34 +1,59 @@
-import { button, folder, useControls } from "leva";
-import { useState, useEffect, useRef } from "react";
-import { useThree } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { folder, useControls } from "leva";
+import { useRef } from "react";
+import { Environment, Float, PresentationControls } from "@react-three/drei";
 import SceneDiagnostics from "./components/SceneDiagnostics.jsx";
 import Lights, { modelLightingPresets } from "./Lights.jsx";
 import { AWSModel } from "./models/AWSModel.jsx";
 import { XSMax2Model } from "./models/XSMax2Model.jsx";
 import { ConnectorClusterModel } from "./models/ConnectorClusterModel.jsx";
-import { projects } from "./projects.js";
-import { usePointerDrag } from "./hooks/usePointerDrag.js";
-import { useCarouselRotation } from "./hooks/useCarouselRotation.js";
+import { DESKTOP_SLIDE_SPACING, MOBILE_SLIDE_SPACING, SLIDE_DEPTH } from "./constants/slideLayout.js";
+
+const PHONE_SLIDE_INDEX = 0;
+const AWS_SLIDE_INDEX = 1;
+const CONNECTOR_SLIDE_INDEX = 2;
+const TOTAL_SLIDES = 3;
+const DEG_TO_RAD = Math.PI / 180;
+
+function getWrappedDelta(index, centerIndex, totalSlides = TOTAL_SLIDES) {
+  const halfRange = totalSlides / 2;
+  const rawDelta = index - centerIndex;
+  return ((rawDelta + halfRange) % totalSlides + totalSlides) % totalSlides - halfRange;
+}
+
+function getSlidePosition(index, centerIndex, isMobile, yOffset = 0) {
+  const laneIndex = centerIndex + getWrappedDelta(index, centerIndex, TOTAL_SLIDES);
+
+  if (isMobile) {
+    return [0, yOffset - laneIndex * MOBILE_SLIDE_SPACING, SLIDE_DEPTH];
+  }
+
+  return [laneIndex * DESKTOP_SLIDE_SPACING, yOffset, SLIDE_DEPTH];
+}
+
+function toRadian(value) {
+  return value * DEG_TO_RAD;
+}
+
+function toRadianRange(a, b) {
+  const min = Math.min(a, b);
+  const max = Math.max(a, b);
+  return [toRadian(min), toRadian(max)];
+}
 
 export default function Experience({
-  slideIndex = 0,
-  setSlideIndex,
-  onModelClick,
+  viewIndex = 0,
+  layoutIndex = viewIndex,
+  isMobile = false,
   diagnosticsEnabled = false,
   disableConnectorInteraction = false,
+  onPresentationDragStart,
+  onPresentationDragEnd,
 }) {
-  const numItems = projects.length;
-  const viewIndex = ((slideIndex % numItems) + numItems) % numItems;
-  const { gl } = useThree();
   const connectorAnchorRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [radiusIntroRunKey, setRadiusIntroRunKey] = useState(0);
 
   const props = useControls("Experience", {
     backgroundColor: "#000000",
     performance: { value: diagnosticsEnabled },
-    carouselRadius: 5,
     "Phone Model": folder(
       {
         phoneScale: { value: 32, min: 1, max: 600, step: 1 },
@@ -39,10 +64,6 @@ export default function Experience({
         phoneRotY: { value: -8, min: -180, max: 180, step: 1 },
         phoneRotZ: { value: 26, min: -180, max: 180, step: 1 },
         phoneScreenEmissive: { value: 0, min: 0, max: 2.5, step: 0.01 },
-        phoneBackMaterial: {
-          value: "matteBlack",
-          options: ["original", "graphite", "matteBlack", "stainless", "midnightBlue"],
-        },
         phoneTrimMaterial: {
           value: "original",
           options: ["original", "graphite", "matteBlack", "stainless", "midnightBlue"],
@@ -62,6 +83,40 @@ export default function Experience({
       },
       { collapsed: false }
     ),
+    "Phone Presentation": folder(
+      {
+        phonePresentationEnabled: { value: true },
+        phonePresentationCursor: { value: true },
+        phonePresentationSnap: { value: true },
+        phonePresentationSpeed: { value: 1.5, min: 0.1, max: 6, step: 0.05 },
+        phonePresentationZoom: { value: 1.07, min: 0.5, max: 2, step: 0.01 },
+        phonePresentationMass: { value: 2.55, min: 0.1, max: 5, step: 0.05 },
+        phonePresentationTension: { value: 286, min: 20, max: 900, step: 1 },
+        phonePresentationFriction: { value: 39, min: 1, max: 80, step: 1 },
+        phonePresentationSnapMass: { value: 1.75, min: 0.1, max: 8, step: 0.05 },
+        phonePresentationSnapTension: { value: 780, min: 20, max: 1400, step: 1 },
+        phonePresentationSnapFriction: { value: 18, min: 1, max: 120, step: 1 },
+        phonePresentationRotX: { value: 75, min: -180, max: 180, step: 1 },
+        phonePresentationRotY: { value: -15, min: -180, max: 180, step: 1 },
+        phonePresentationRotZ: { value: -31, min: -180, max: 180, step: 1 },
+        phonePresentationPolarMin: { value: -35, min: -180, max: 180, step: 1 },
+        phonePresentationPolarMax: { value: 35, min: -180, max: 180, step: 1 },
+        phonePresentationAzimuthMin: { value: -65, min: -180, max: 180, step: 1 },
+        phonePresentationAzimuthMax: { value: 65, min: -180, max: 180, step: 1 },
+      },
+      { collapsed: true }
+    ),
+    "Phone Float": folder(
+      {
+        phoneFloatEnabled: { value: true },
+        phoneFloatSpeed: { value: 1.05, min: 0, max: 6, step: 0.05 },
+        phoneFloatRotationIntensity: { value: 0.38, min: 0, max: 2, step: 0.01 },
+        phoneFloatFloatIntensity: { value: 0.36, min: 0, max: 2, step: 0.01 },
+        phoneFloatYLow: { value: -0.08, min: -1, max: 0, step: 0.01 },
+        phoneFloatYHigh: { value: 0.08, min: 0, max: 1, step: 0.01 },
+      },
+      { collapsed: true }
+    ),
     "AWS Logo Material": folder(
       {
         awsLogoScale: { value: 0.86, min: 0.1, max: 1, step: 0.001 },
@@ -76,49 +131,48 @@ export default function Experience({
       },
       { collapsed: false }
     ),
-    environmentPreset: {
-      value: "city",
-      options: ["sunset", "dawn", "night", "warehouse", "forest", "apartment", "studio", "city", "park", "lobby"]
-    },
-    "Radius Intro": folder(
+    "AWS Float": folder(
       {
-        radiusIntroStart: { value: 1.3, min: 0.25, max: 8, step: 0.05 },
-        radiusIntroSpeed: { value: 2.0, min: 0.2, max: 10, step: 0.1 },
-        rerunRadiusIntro: button(() => {
-          setRadiusIntroRunKey((value) => value + 1);
-        }),
+        awsFloatEnabled: { value: true },
+        awsFloatSpeed: { value: 1.77, min: 0, max: 6, step: 0.05 },
+        awsFloatRotationIntensity: { value: 0.81, min: 0, max: 2, step: 0.01 },
+        awsFloatFloatIntensity: { value: 0.42, min: 0, max: 2, step: 0.01 },
+        awsFloatYLow: { value: -0.12, min: -1, max: 0, step: 0.01 },
+        awsFloatYHigh: { value: 0.12, min: 0, max: 1, step: 0.01 },
       },
       { collapsed: true }
     ),
+    environmentPreset: {
+      value: "city",
+      options: ["sunset", "dawn", "night", "warehouse", "forest", "apartment", "studio", "city", "park", "lobby"],
+    },
   });
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Pointer drag interaction
-  const { dragOffset } = usePointerDrag(
-    gl,
-    () => setSlideIndex(s => s + 1), // onSwipeLeft
-    () => setSlideIndex(s => s - 1), // onSwipeRight
-    onModelClick,
-    isMobile
-  );
-
-  // Carousel rotation and positioning
-  const { groupRef, getPosition, getRotation } = useCarouselRotation(
-    slideIndex,
-    dragOffset,
-    numItems,
-    props.carouselRadius,
-    {
-      introStartRadius: props.radiusIntroStart,
-      introSpeed: props.radiusIntroSpeed,
-      introRunKey: radiusIntroRunKey,
-    }
-  );
+  const phonePolar = toRadianRange(props.phonePresentationPolarMin, props.phonePresentationPolarMax);
+  const phoneAzimuth = toRadianRange(props.phonePresentationAzimuthMin, props.phonePresentationAzimuthMax);
+  const phoneRotation = [
+    toRadian(props.phonePresentationRotX),
+    toRadian(props.phonePresentationRotY),
+    toRadian(props.phonePresentationRotZ),
+  ];
+  const phoneFloatRange = [
+    Math.min(props.phoneFloatYLow, props.phoneFloatYHigh),
+    Math.max(props.phoneFloatYLow, props.phoneFloatYHigh),
+  ];
+  const awsFloatRange = [
+    Math.min(props.awsFloatYLow, props.awsFloatYHigh),
+    Math.max(props.awsFloatYLow, props.awsFloatYHigh),
+  ];
+  const phoneControlsEnabled =
+    !isMobile && viewIndex === PHONE_SLIDE_INDEX && props.phonePresentationEnabled;
+  const phoneSnapConfig = props.phonePresentationSnap
+    ? {
+        mass: props.phonePresentationSnapMass,
+        tension: props.phonePresentationSnapTension,
+        friction: props.phonePresentationSnapFriction,
+      }
+    : false;
+  const shouldUsePhoneFloat = isMobile && props.phoneFloatEnabled;
 
   return (
     <>
@@ -127,32 +181,97 @@ export default function Experience({
       <Lights modelLighting={modelLightingPresets.phone} />
       <Environment preset={props.environmentPreset} />
 
-      <group ref={groupRef} position={[0, 0, 0]}>
-        <group position={getPosition(0, 0)} rotation={getRotation(0)}>
-          <group
-            position={[props.phoneOffsetX, props.phoneOffsetY, props.phoneOffsetZ]}
-            rotation={[
-              (props.phoneRotX * Math.PI) / 180,
-              (props.phoneRotY * Math.PI) / 180,
-              (props.phoneRotZ * Math.PI) / 180,
-            ]}
+      <group position={getSlidePosition(PHONE_SLIDE_INDEX, layoutIndex, isMobile, 0)}>
+        {shouldUsePhoneFloat ? (
+          <Float
+            speed={props.phoneFloatSpeed}
+            rotationIntensity={props.phoneFloatRotationIntensity}
+            floatIntensity={props.phoneFloatFloatIntensity}
+            floatingRange={phoneFloatRange}
           >
-            <XSMax2Model
-              scale={props.phoneScale}
-              screenEmissiveIntensity={props.phoneScreenEmissive}
-              backMaterialPreset={props.phoneBackMaterial}
-              trimMaterialPreset={props.phoneTrimMaterial}
-              edgeMaterialPreset={props.phoneEdgeMaterial}
-              glassMaterialPreset={props.phoneGlassMaterial}
-              sideRailMaterialPreset={props.phoneSideRailMaterial}
-              isActive={false}
+            <group rotation={phoneRotation}>
+              <group
+                position={[props.phoneOffsetX, props.phoneOffsetY, props.phoneOffsetZ]}
+                rotation={[
+                  (props.phoneRotX * Math.PI) / 180,
+                  (props.phoneRotY * Math.PI) / 180,
+                  (props.phoneRotZ * Math.PI) / 180,
+                ]}
+              >
+                <XSMax2Model
+                  scale={props.phoneScale}
+                  screenEmissiveIntensity={props.phoneScreenEmissive}
+                  trimMaterialPreset={props.phoneTrimMaterial}
+                  edgeMaterialPreset={props.phoneEdgeMaterial}
+                  glassMaterialPreset={props.phoneGlassMaterial}
+                  sideRailMaterialPreset={props.phoneSideRailMaterial}
+                />
+              </group>
+            </group>
+          </Float>
+        ) : (
+          <PresentationControls
+            enabled={phoneControlsEnabled}
+            global={false}
+            cursor={props.phonePresentationCursor}
+            snap={phoneSnapConfig}
+            speed={props.phonePresentationSpeed}
+            zoom={props.phonePresentationZoom}
+            config={{
+              mass: props.phonePresentationMass,
+              tension: props.phonePresentationTension,
+              friction: props.phonePresentationFriction,
+            }}
+            onStart={onPresentationDragStart}
+            onEnd={onPresentationDragEnd}
+            rotation={phoneRotation}
+            polar={phonePolar}
+            azimuth={phoneAzimuth}
+          >
+            <group
+              position={[props.phoneOffsetX, props.phoneOffsetY, props.phoneOffsetZ]}
+              rotation={[
+                (props.phoneRotX * Math.PI) / 180,
+                (props.phoneRotY * Math.PI) / 180,
+                (props.phoneRotZ * Math.PI) / 180,
+              ]}
+            >
+              <XSMax2Model
+                scale={props.phoneScale}
+                screenEmissiveIntensity={props.phoneScreenEmissive}
+                trimMaterialPreset={props.phoneTrimMaterial}
+                edgeMaterialPreset={props.phoneEdgeMaterial}
+                glassMaterialPreset={props.phoneGlassMaterial}
+                sideRailMaterialPreset={props.phoneSideRailMaterial}
+              />
+            </group>
+          </PresentationControls>
+        )}
+      </group>
+      <group position={getSlidePosition(AWS_SLIDE_INDEX, layoutIndex, isMobile, -1)}>
+        {props.awsFloatEnabled ? (
+          <Float
+            speed={props.awsFloatSpeed}
+            rotationIntensity={props.awsFloatRotationIntensity}
+            floatIntensity={props.awsFloatFloatIntensity}
+            floatingRange={awsFloatRange}
+          >
+            <AWSModel
+              scale={0.3}
+              logoScale={props.awsLogoScale}
+              arrowColor={props.awsArrowColor}
+              textColor={props.awsTextColor}
+              logoMetalness={props.awsLogoMetalness}
+              logoRoughness={props.awsLogoRoughness}
+              arrowEmissive={props.awsArrowEmissive}
+              arrowEmissiveIntensity={props.awsArrowEmissiveIntensity}
+              textEmissive={props.awsTextEmissive}
+              textEmissiveIntensity={props.awsTextEmissiveIntensity}
             />
-          </group>
-        </group>
-        <group position={getPosition(1, -1)} rotation={getRotation(1)}>
+          </Float>
+        ) : (
           <AWSModel
             scale={0.3}
-            isActive={viewIndex === 1}
             logoScale={props.awsLogoScale}
             arrowColor={props.awsArrowColor}
             textColor={props.awsTextColor}
@@ -163,11 +282,14 @@ export default function Experience({
             textEmissive={props.awsTextEmissive}
             textEmissiveIntensity={props.awsTextEmissiveIntensity}
           />
-        </group>
-        <group ref={connectorAnchorRef} position={getPosition(2, 0)} rotation={getRotation(2)} />
+        )}
       </group>
+      <group
+        ref={connectorAnchorRef}
+        position={getSlidePosition(CONNECTOR_SLIDE_INDEX, layoutIndex, isMobile, 0)}
+      />
       <ConnectorClusterModel
-        isActive={viewIndex === 2}
+        isActive={viewIndex === CONNECTOR_SLIDE_INDEX}
         interactionEnabled={!disableConnectorInteraction}
         anchorSourceRef={connectorAnchorRef}
       />

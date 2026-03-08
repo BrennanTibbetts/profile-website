@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export default function CarouselTitlePanel({ title = '' }) {
+export default function SlideTitlePanel({ title = '' }) {
   const [renderedTitle, setRenderedTitle] = useState(title);
   const [phase, setPhase] = useState('is-entered');
 
@@ -31,8 +31,8 @@ export default function CarouselTitlePanel({ title = '' }) {
   }, [phase]);
 
   return (
-    <div className="carousel-title-panel desktop-only" aria-live="polite">
-      <p className={`carousel-title-text ${phase}`}>{renderedTitle}</p>
+    <div className="slide-title-panel desktop-only" aria-live="polite">
+      <p className={`slide-title-text ${phase}`}>{renderedTitle}</p>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { projects } from '../projects';
 
 const SLIDE_QUERY_KEY = 'slide';
+const TOTAL_SLIDES = Math.max(projects.length, 1);
 
 function clampSlideIndex(value) {
   if (!Number.isFinite(value)) {
@@ -19,6 +20,15 @@ function clampSlideIndex(value) {
   }
 
   return normalized;
+}
+
+function wrapSlideIndex(value) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  const normalized = Math.trunc(value) % TOTAL_SLIDES;
+  return normalized < 0 ? normalized + TOTAL_SLIDES : normalized;
 }
 
 function getInitialSlideIndex() {
@@ -39,22 +49,20 @@ function getInitialSlideIndex() {
  * @returns {Object} View state and handlers
  */
 export function useViewState() {
-  const [slideIndex, setSlideIndex] = useState(() => getInitialSlideIndex());
+  const [viewIndex, setViewIndex] = useState(() => clampSlideIndex(getInitialSlideIndex()));
   const [showLeva, setShowLeva] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showBio, setShowBio] = useState(false);
   const [hasSwiped, setHasSwiped] = useState(false);
   const [clickedViews, setClickedViews] = useState(new Set());
 
-  const viewIndex = ((slideIndex % projects.length) + projects.length) % projects.length;
-
   const prev = () => {
-    setSlideIndex((s) => s - 1);
+    setViewIndex((index) => wrapSlideIndex(index - 1));
     setHasSwiped(true);
   };
 
   const next = () => {
-    setSlideIndex((s) => s + 1);
+    setViewIndex((index) => wrapSlideIndex(index + 1));
     setHasSwiped(true);
   };
 
@@ -110,8 +118,6 @@ export function useViewState() {
   }, [viewIndex]);
 
   return {
-    slideIndex,
-    setSlideIndex,
     viewIndex,
     prev,
     next,
@@ -121,7 +127,6 @@ export function useViewState() {
     showBio,
     setShowBio,
     hasSwiped,
-    setHasSwiped,
     clickedViews,
     markViewAsClicked,
   };

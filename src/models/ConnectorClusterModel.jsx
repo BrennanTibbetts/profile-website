@@ -15,6 +15,8 @@ const ANCHOR_ROTATION_EPSILON = 0.000001;
 const CENTER_PULL_EPSILON_SQ = 0.0004;
 const CENTER_PULL_STRENGTH = 0.2;
 const CENTER_PULL_MAX_IMPULSE = 0.35;
+const CONNECTOR_BOUNDS_HALF_EXTENT = 4.9;
+const CONNECTOR_BOUNDS_WALL_THICKNESS = 0.45;
 
 const shuffle = (accent = 0) => [
   { color: "#444", roughness: 0.1 },
@@ -116,6 +118,49 @@ function PointerCollider({ enabled, anchorSourceRef }) {
   );
 }
 
+function AnchorBoundsCollider({
+  anchorSourceRef,
+  halfExtent = CONNECTOR_BOUNDS_HALF_EXTENT,
+  wallThickness = CONNECTOR_BOUNDS_WALL_THICKNESS,
+}) {
+  const boundsRef = useRef(null);
+  const center = useMemo(() => new THREE.Vector3(), []);
+  const rotation = useMemo(() => new THREE.Quaternion(), []);
+  const wallOffset = halfExtent + wallThickness;
+
+  useFrame(() => {
+    if (!anchorSourceRef?.current || !boundsRef.current) {
+      return;
+    }
+
+    anchorSourceRef.current.getWorldPosition(center);
+    anchorSourceRef.current.getWorldQuaternion(rotation);
+
+    boundsRef.current.setNextKinematicTranslation({
+      x: center.x,
+      y: center.y,
+      z: center.z,
+    });
+    boundsRef.current.setNextKinematicRotation({
+      x: rotation.x,
+      y: rotation.y,
+      z: rotation.z,
+      w: rotation.w,
+    });
+  });
+
+  return (
+    <RigidBody ref={boundsRef} type="kinematicPosition" colliders={false} position={[0, 0, 0]}>
+      <CuboidCollider args={[wallThickness, halfExtent, halfExtent]} position={[wallOffset, 0, 0]} />
+      <CuboidCollider args={[wallThickness, halfExtent, halfExtent]} position={[-wallOffset, 0, 0]} />
+      <CuboidCollider args={[halfExtent, wallThickness, halfExtent]} position={[0, wallOffset, 0]} />
+      <CuboidCollider args={[halfExtent, wallThickness, halfExtent]} position={[0, -wallOffset, 0]} />
+      <CuboidCollider args={[halfExtent, halfExtent, wallThickness]} position={[0, 0, wallOffset]} />
+      <CuboidCollider args={[halfExtent, halfExtent, wallThickness]} position={[0, 0, -wallOffset]} />
+    </RigidBody>
+  );
+}
+
 function Connector({
   position,
   rotation,
@@ -148,6 +193,7 @@ function Connector({
       linearDamping={4}
       angularDamping={1}
       friction={0.1}
+      ccd
     >
       <CuboidCollider args={[colliderCoreHalf, colliderArmHalf, colliderCoreHalf]} />
       <CuboidCollider args={[colliderArmHalf, colliderCoreHalf, colliderCoreHalf]} />
@@ -298,6 +344,7 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
     <group>
       <Suspense fallback={null}>
         <Physics gravity={[0, 0, 0]} timeStep="vary" interpolate={false}>
+          <AnchorBoundsCollider anchorSourceRef={anchorSourceRef} />
           <PointerCollider enabled={isActive && interactionEnabled} anchorSourceRef={anchorSourceRef} />
           {connectors.map((connector, index) => (
             <Connector

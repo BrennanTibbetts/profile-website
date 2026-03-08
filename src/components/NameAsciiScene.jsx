@@ -61,8 +61,8 @@ const HOME_WINDOW_DEFAULTS = {
 };
 const LEVA_THEME = {
   sizes: {
-    rootWidth: "360px",
-    controlWidth: "200px",
+    rootWidth: "820px",
+    controlWidth: "460px",
   },
 };
 
