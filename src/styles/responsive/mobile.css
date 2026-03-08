@@ -155,57 +155,6 @@
       display: none;
   }
 
-  .swipe-hint, .click-hint {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      display: flex !important;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 12px;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-      font-weight: 600;
-      animation: pulse 2s infinite ease-in-out;
-      transition: opacity 0.5s ease;
-  }
-
-  .swipe-hint {
-      margin-bottom: 0;
-  }
-
-  .swipe-hint.waiting {
-      opacity: 0;
-      animation: none;
-  }
-
-  .swipe-hint.fade-out, .click-hint.fade-out {
-      opacity: 0;
-      animation: none;
-      pointer-events: none;
-  }
-
-  .click-hint {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      transform: none;
-      gap: 4px;
-  }
-
-  .click-hint .arrow-up {
-      font-size: 20px;
-      margin-bottom: -2px;
-  }
-  
-  .click-hint .arrow-line {
-      display: none;
-  }
-
   .panel-left .actions-rails {
       margin-top: 0;
       display: flex;

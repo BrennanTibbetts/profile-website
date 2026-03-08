@@ -1,24 +1,11 @@
 import React, { useState } from 'react';
-import { projects } from './projects';
 
-export default function Actions({ viewControlProps, hasSwiped, hasClicked, isMobile }) {
-  const { prev, next, viewIndex } = viewControlProps || {};
+export default function Actions() {
   const [resumeOpen, setResumeOpen] = useState(false);
 
   return (
     <div className="actions">
       <hr className="divider" />
-      {isMobile && (
-        <div className="hints-wrapper">
-          <div className={`click-hint ${hasClicked ? 'fade-out' : ''}`}>
-              <div className="arrow-up">^</div>
-              <div className="text">CLICK TO LEARN MORE ABOUT {projects[viewIndex]?.subject}</div>
-          </div>
-          <div className={`swipe-hint ${!hasClicked ? 'waiting' : ''} ${hasSwiped ? 'fade-out' : ''}`}>
-              SWIPE UP / DOWN
-          </div>
-        </div>
-      )}
       <div className="actions-rails">
         <div className="actions-buttons">
           <a className="social-btn" href="https://www.linkedin.com/in/brennan-t-tibbetts/" title="LinkedIn" target="_blank" rel="noopener noreferrer">

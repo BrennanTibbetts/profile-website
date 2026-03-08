@@ -151,45 +151,8 @@
   gap: 8px;
 }
 
-.hints-wrapper {
-  position: relative;
-  height: 40px;
-  margin-bottom: 24px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.swipe-hint, .click-hint {
-  display: none !important;
-}
-
 @keyframes pulse {
   0% { opacity: 0.5; }
   50% { opacity: 1; }
   100% { opacity: 0.5; }
-}
-
-@media (max-width: 768px) {
-  /* Position the click hint relative to the hints-wrapper so it appears higher on screen */
-  .hints-wrapper {
-    /* ensure wrapper remains positioned for absolute children */
-    position: relative;
-  }
-
-  .hints-wrapper .click-hint {
-    position: absolute;
-    top: -80px; /* pull the hint above the wrapper */
-    left: 0;
-    right: 0;
-    display: flex !important;
-    justify-content: center;
-    pointer-events: none; /* don't block interactions */
-    z-index: 50;
-  }
-
-  .hints-wrapper .click-hint .text {
-    pointer-events: auto; /* allow text selection/clicks if needed */
-  }
 }

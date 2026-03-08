@@ -6,6 +6,7 @@ import Experience from "../Experience";
 import Header from "../Header";
 import Actions from "../Actions";
 import ViewInfo from "../ViewInfo";
+import MobileInfoPanel from "../components/MobileInfoPanel";
 import MobileOverlay from "../components/MobileOverlay";
 import SiteTopNav from "../components/SiteTopNav";
 import SlideTitlePanel from "../components/SlideTitlePanel";
@@ -129,9 +130,6 @@ export default function PortfolioPage({ pathname, navigate }) {
     setShowInfo,
     showBio,
     setShowBio,
-    hasSwiped,
-    clickedViews,
-    markViewAsClicked,
   } = useViewState();
   const totalSlides = Math.max(projects.length, 1);
   const [laneIndex, setLaneIndex] = useState(() => viewIndex);
@@ -315,36 +313,17 @@ export default function PortfolioPage({ pathname, navigate }) {
   };
 
   const handleCanvasClick = (event) => {
-    if (showInfo || showBio) {
+    if (!isMobile || !showInfo) {
       return;
     }
 
-    if (event.target instanceof Element) {
-      const interactiveTarget = event.target.closest(
-        ".view-controls, .view-btn, .btn, .mobile-info-btn, button, a, input, textarea, select"
-      );
-      if (interactiveTarget) {
-        return;
-      }
+    if (event.target === event.currentTarget) {
+      setShowInfo(false);
     }
-
-    if (!isMobile) {
-      return;
-    }
-
-    if (isMobile && mobileConnectorInteractionEnabled) {
-      return;
-    }
-
-    if (performance.now() < suppressMobileClickUntilRef.current) {
-      return;
-    }
-
-    setShowInfo(true);
-    markViewAsClicked(viewIndex);
   };
 
   const handleStartConnectorInteraction = useCallback(() => {
+    setShowInfo(false);
     setMobileConnectorInteractionEnabled(true);
     gestureRef.current.active = false;
     gestureRef.current.pointerId = null;
@@ -473,8 +452,6 @@ export default function PortfolioPage({ pathname, navigate }) {
       </div>
       <Leva hidden={!showLeva} theme={LEVA_THEME} />
 
-      <MobileOverlay type="info" isOpen={showInfo} onClose={() => setShowInfo(false)} viewIndex={viewIndex} />
-
       <MobileOverlay type="bio" isOpen={showBio} onClose={() => setShowBio(false)} />
 
       <aside className="panel-left" style={leftPanelStyle}>
@@ -493,25 +470,8 @@ export default function PortfolioPage({ pathname, navigate }) {
         <div className="desktop-view-info">
           <ViewInfo viewIndex={viewIndex} />
         </div>
-        <Actions
-          viewControlProps={{ prev: goPrev, next: goNext, viewIndex }}
-          hasSwiped={hasSwiped}
-          hasClicked={clickedViews.has(viewIndex)}
-          isMobile={isMobile}
-        />
+        {!isMobile || !showInfo ? <Actions /> : null}
       </aside>
-
-      {isMobile && !isConnectorInteractionMode ? (
-        <button
-          className="mobile-info-btn"
-          onClick={() => {
-            setShowInfo(true);
-            markViewAsClicked(viewIndex);
-          }}
-        >
-          Learn more
-        </button>
-      ) : null}
 
       <main className="panel-right">
         <div
@@ -519,13 +479,24 @@ export default function PortfolioPage({ pathname, navigate }) {
           className="canvas-container"
           onClick={handleCanvasClick}
           onWheel={!isMobile ? handleCanvasWheel : undefined}
-          onPointerDown={isMobileSwipeEnabled ? handleCanvasPointerDown : undefined}
-          onPointerMove={isMobileSwipeEnabled ? handleCanvasPointerMove : undefined}
-          onPointerUp={isMobileSwipeEnabled ? handleCanvasPointerUp : undefined}
-          onPointerCancel={isMobileSwipeEnabled ? handleCanvasPointerCancel : undefined}
+            onPointerDown={isMobileSwipeEnabled ? handleCanvasPointerDown : undefined}
+            onPointerMove={isMobileSwipeEnabled ? handleCanvasPointerMove : undefined}
+            onPointerUp={isMobileSwipeEnabled ? handleCanvasPointerUp : undefined}
+            onPointerCancel={isMobileSwipeEnabled ? handleCanvasPointerCancel : undefined}
         >
+          {isMobile ? (
+            <MobileInfoPanel
+              viewIndex={viewIndex}
+              isOpen={showInfo}
+              hidden={isConnectorInteractionMode}
+              onOpen={() => {
+                setShowInfo(true);
+              }}
+              onClose={() => setShowInfo(false)}
+            />
+          ) : null}
           {!isMobile ? <SlideTitlePanel title={projects[viewIndex]?.title ?? ""} /> : null}
-          {isMobile && isConnectorSlide ? (
+          {isMobile && isConnectorSlide && !showInfo ? (
             <button
               type="button"
               className={`mobile-interaction-toggle ${isConnectorInteractionMode ? "is-active" : ""}`}

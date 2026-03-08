@@ -53,25 +53,13 @@ export function useViewState() {
   const [showLeva, setShowLeva] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showBio, setShowBio] = useState(false);
-  const [hasSwiped, setHasSwiped] = useState(false);
-  const [clickedViews, setClickedViews] = useState(new Set());
 
   const prev = () => {
     setViewIndex((index) => wrapSlideIndex(index - 1));
-    setHasSwiped(true);
   };
 
   const next = () => {
     setViewIndex((index) => wrapSlideIndex(index + 1));
-    setHasSwiped(true);
-  };
-
-  const markViewAsClicked = (index) => {
-    setClickedViews(prev => {
-      const next = new Set(prev);
-      next.add(index);
-      return next;
-    });
   };
 
   const toggleLeva = () => setShowLeva((s) => !s);
@@ -126,8 +114,5 @@ export function useViewState() {
     setShowInfo,
     showBio,
     setShowBio,
-    hasSwiped,
-    clickedViews,
-    markViewAsClicked,
   };
 }
