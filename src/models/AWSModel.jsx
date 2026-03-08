@@ -1,63 +1,82 @@
-import React, { useMemo } from 'react'
-import { useGLTF } from '@react-three/drei'
-import * as THREE from 'three'
-import { useMouseTracking } from '../hooks/useMouseTracking'
+import React, { useMemo } from "react";
+import { useGLTF } from "@react-three/drei";
+import * as THREE from "three";
+import { useMouseTracking } from "../hooks/useMouseTracking";
 
-export function AWSModel({ isActive = true, trackingEnabled = true, ...props }) {
-  const { nodes, materials } = useGLTF('/assets/models/aws/scene.gltf')
+const AWS_LOGO_PATH = "/assets/models/aws/aws.glb";
+export function AWSModel({
+  isActive = true,
+  logoScale = 0.01,
+  arrowColor = "#ff9500",
+  textColor = "#ffffff",
+  logoMetalness = 0.3,
+  logoRoughness = 0.45,
+  arrowEmissive = "#ff6600",
+  arrowEmissiveIntensity = 0.12,
+  textEmissive = "#000000",
+  textEmissiveIntensity = 0,
+  ...props
+}) {
+  const { nodes: logoNodes } = useGLTF(AWS_LOGO_PATH);
+
   const modelOffset = useMemo(() => {
-    const quaternion = new THREE.Quaternion()
-    quaternion.setFromEuler(new THREE.Euler(0.1, 0, 0))
-    return quaternion
-  }, [])
-  const forwardAxis = useMemo(() => new THREE.Vector3(0, 0, 1), [])
-  const modelRef = useMouseTracking(forwardAxis, modelOffset, isActive, trackingEnabled)
+    const offset = new THREE.Quaternion();
+    offset.setFromEuler(new THREE.Euler(0.1, 0, 0));
+    return offset;
+  }, []);
+  const modelRef = useMouseTracking(new THREE.Vector3(0, 0, 1), modelOffset, isActive);
 
-  // Theme is removed app-wide; keep a single dark-mode material set.
-  const arrowMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: '#FF9500', // Orange
-      metalness: 0.3,
-      roughness: 0.4,
-      emissive: '#FF6600',
-      emissiveIntensity: 0.2
-    })
-  }, [])
+  const arrowMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: arrowColor,
+        metalness: logoMetalness,
+        roughness: logoRoughness,
+        emissive: arrowEmissive,
+        emissiveIntensity: arrowEmissiveIntensity,
+      }),
+    [arrowColor, logoMetalness, logoRoughness, arrowEmissive, arrowEmissiveIntensity]
+  );
 
-  const textMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: '#ffffff',
-      metalness: 0.2,
-      roughness: 0.6,
-      emissive: '#000000',
-      emissiveIntensity: 0.05
-    })
-  }, [])
+  const textMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: textColor,
+        metalness: logoMetalness,
+        roughness: logoRoughness,
+        emissive: textEmissive,
+        emissiveIntensity: textEmissiveIntensity,
+      }),
+    [textColor, logoMetalness, logoRoughness, textEmissive, textEmissiveIntensity]
+  );
 
   return (
     <group {...props} dispose={null} ref={modelRef}>
-      <group scale={0.01}>
+      <group scale={logoScale}>
         <mesh
-          geometry={nodes.ArrowBody_Material001_0.geometry}
+          geometry={logoNodes.ArrowBody.geometry}
           material={arrowMaterial}
-          position={[-13.076, 155.698, -20.264]}
-          scale={16067.461}
+          position={[-0.131, 1.557, -0.203]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={160.675}
         />
         <mesh
-          geometry={nodes.AWS_Material003_0.geometry}
+          geometry={logoNodes.AWS.geometry}
           material={textMaterial}
-          position={[41.538, 612.01, -20.264]}
-          scale={16067.461}
+          position={[0.415, 6.12, -0.203]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={160.675}
         />
         <mesh
-          geometry={nodes.ArrowHead_Material001_0.geometry}
+          geometry={logoNodes.ArrowHead.geometry}
           material={arrowMaterial}
-          position={[593.304, 205.677, -20.264]}
-          scale={16067.461}
+          position={[5.933, 2.057, -0.203]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={160.675}
         />
       </group>
     </group>
-  )
+  );
 }
 
-useGLTF.preload('/assets/models/aws/scene.gltf')
+useGLTF.preload(AWS_LOGO_PATH);

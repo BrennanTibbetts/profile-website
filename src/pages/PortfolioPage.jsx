@@ -12,7 +12,6 @@ import { projects } from "../projects";
 import { useViewState } from "../hooks/useViewState";
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
 import { useDiagnosticsEnabled } from "../hooks/useDiagnosticsEnabled";
-import { QUALITY_TIER_OPTIONS, useAdaptiveQualityProfile } from "../hooks/useAdaptiveQualityProfile";
 
 const LEVA_THEME = {
   sizes: {
@@ -43,15 +42,6 @@ export default function PortfolioPage({ pathname, navigate }) {
   const canvasContainerRef = useRef(null);
   const lastClickNavAtRef = useRef(0);
   const clickNavControls = useControls("Experience", {
-    "Performance Profile": folder(
-      {
-        qualityTierOverride: {
-          value: "auto",
-          options: QUALITY_TIER_OPTIONS,
-        },
-      },
-      { collapsed: true }
-    ),
     "Click Navigation": folder(
       {
         clickNavEnabled: { value: true },
@@ -67,7 +57,6 @@ export default function PortfolioPage({ pathname, navigate }) {
       { collapsed: true }
     ),
   });
-  const qualityProfile = useAdaptiveQualityProfile(clickNavControls.qualityTierOverride);
 
   const {
     slideIndex,
@@ -210,13 +199,12 @@ export default function PortfolioPage({ pathname, navigate }) {
           {!isMobile ? <CarouselTitlePanel title={projects[viewIndex]?.title ?? ""} /> : null}
           <Canvas
             camera={{ position: [0, 0, isMobile ? 16 : 12], fov: 45 }}
-            dpr={qualityProfile.preset.canvasDpr}
+            dpr={[1, 1.25]}
             gl={{ powerPreference: "high-performance" }}
           >
             <CameraController isMobile={isMobile} />
             <Experience
               diagnosticsEnabled={diagnosticsEnabled}
-              qualityProfile={qualityProfile}
               slideIndex={slideIndex}
               setSlideIndex={(val) => {
                 setSlideIndex(val);

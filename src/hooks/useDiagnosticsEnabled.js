@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "r3fDiagnosticsEnabled";
 const QUERY_KEYS = ["perf", "diagnostics", "debug3d"];
@@ -49,10 +49,6 @@ function getInitialValue(defaultValue) {
 export function useDiagnosticsEnabled(defaultValue = false) {
   const [enabled, setEnabled] = useState(() => getInitialValue(defaultValue));
 
-  const toggleDiagnostics = useCallback(() => {
-    setEnabled((current) => !current);
-  }, []);
-
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -64,30 +60,6 @@ export function useDiagnosticsEnabled(defaultValue = false) {
       // Ignore storage failures (private mode or blocked storage).
     }
   }, [enabled]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const handleKeyDown = (event) => {
-      if (!event.shiftKey || event.key.toLowerCase() !== "d" || event.repeat) {
-        return;
-      }
-
-      const activeElement = document.activeElement;
-      const tagName = activeElement?.tagName?.toLowerCase();
-      const isTypingContext = tagName === "input" || tagName === "textarea" || activeElement?.isContentEditable;
-      if (isTypingContext) {
-        return;
-      }
-
-      toggleDiagnostics();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleDiagnostics]);
 
   return [enabled, setEnabled];
 }

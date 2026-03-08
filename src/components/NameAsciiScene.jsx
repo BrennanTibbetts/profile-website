@@ -45,6 +45,20 @@ const ASCII_RESOLUTION_DESKTOP = 0.21;
 const ASCII_RESOLUTION_MOBILE = 0.36;
 const MOBILE_BREAKPOINT = 768;
 const MOBILE_HINT_STORAGE_KEY = "homeAsciiTouchHintSeen";
+const HOME_WINDOW_DEFAULTS = {
+  widthVwDesktop: 62,
+  heightVhDesktop: 52,
+  widthVwMobile: 92,
+  heightVhMobile: 36,
+  offsetXVw: 0,
+  offsetYVh: 6,
+  maxWidthPx: 1400,
+  maxHeightPx: 840,
+  cornerRadiusPx: 22,
+  showBorder: false,
+  borderWidthPx: 1,
+  borderColor: "#6ce4ff",
+};
 const LEVA_THEME = {
   sizes: {
     rootWidth: "360px",
@@ -504,7 +518,37 @@ export default function NameAsciiScene() {
   });
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [showMobileHint, setShowMobileHint] = useState(false);
+  const windowControls = useControls("Home Window", {
+    size: folder(
+      {
+        widthVwDesktop: { value: HOME_WINDOW_DEFAULTS.widthVwDesktop, min: 30, max: 100, step: 1 },
+        heightVhDesktop: { value: HOME_WINDOW_DEFAULTS.heightVhDesktop, min: 20, max: 100, step: 1 },
+        widthVwMobile: { value: HOME_WINDOW_DEFAULTS.widthVwMobile, min: 40, max: 100, step: 1 },
+        heightVhMobile: { value: HOME_WINDOW_DEFAULTS.heightVhMobile, min: 18, max: 100, step: 1 },
+        maxWidthPx: { value: HOME_WINDOW_DEFAULTS.maxWidthPx, min: 320, max: 2200, step: 10 },
+        maxHeightPx: { value: HOME_WINDOW_DEFAULTS.maxHeightPx, min: 220, max: 1600, step: 10 },
+      },
+      { collapsed: false }
+    ),
+    position: folder(
+      {
+        offsetXVw: { value: HOME_WINDOW_DEFAULTS.offsetXVw, min: -30, max: 30, step: 0.25 },
+        offsetYVh: { value: HOME_WINDOW_DEFAULTS.offsetYVh, min: -30, max: 30, step: 0.25 },
+      },
+      { collapsed: false }
+    ),
+    style: folder(
+      {
+        cornerRadiusPx: { value: HOME_WINDOW_DEFAULTS.cornerRadiusPx, min: 0, max: 56, step: 1 },
+        showBorder: { value: HOME_WINDOW_DEFAULTS.showBorder },
+        borderWidthPx: { value: HOME_WINDOW_DEFAULTS.borderWidthPx, min: 1, max: 8, step: 1 },
+        borderColor: { value: HOME_WINDOW_DEFAULTS.borderColor },
+      },
+      { collapsed: true }
+    ),
+  });
   const renderControls = useControls("Home Render", {
+    performance: { value: diagnosticsEnabled },
     asciiEnabled: { value: true },
     matcapMode: { value: true },
     Text: folder(
@@ -541,14 +585,29 @@ export default function NameAsciiScene() {
         : ASCII_CHARACTER_SET_DEFAULT
       : ASCII_CHARACTER_SETS[renderControls.asciiSet] ?? ASCII_CHARACTER_SET_DEFAULT;
   const asciiRendererKey = `${renderControls.asciiSet}:${activeAsciiCharacters}:${asciiResolution}`;
+  const sceneWindowStyle = useMemo(() => {
+    const widthVw = isMobileViewport ? windowControls.widthVwMobile : windowControls.widthVwDesktop;
+    const heightVh = isMobileViewport ? windowControls.heightVhMobile : windowControls.heightVhDesktop;
+    return {
+      width: `${widthVw}vw`,
+      height: `${heightVh}vh`,
+      maxWidth: `${windowControls.maxWidthPx}px`,
+      maxHeight: `${windowControls.maxHeightPx}px`,
+      borderRadius: `${windowControls.cornerRadiusPx}px`,
+      border: windowControls.showBorder
+        ? `${windowControls.borderWidthPx}px solid ${windowControls.borderColor}`
+        : "none",
+      transform: `translate(calc(-50% + ${windowControls.offsetXVw}vw), calc(-50% + ${windowControls.offsetYVh}vh))`,
+    };
+  }, [isMobileViewport, windowControls]);
   const cameraControls = useControls("Home Camera", {
     cameraXDesktop: { value: 0, min: -6, max: 6, step: 0.01 },
     cameraYDesktop: { value: 0, min: -6, max: 6, step: 0.01 },
-    cameraZDesktop: { value: 10.2, min: 4, max: 24, step: 0.01 },
+    cameraZDesktop: { value: 5.6, min: 4, max: 24, step: 0.01 },
     cameraFovDesktop: { value: 36, min: 15, max: 80, step: 0.1 },
     cameraXMobile: { value: 0, min: -6, max: 6, step: 0.01 },
     cameraYMobile: { value: 0, min: -6, max: 6, step: 0.01 },
-    cameraZMobile: { value: 10.2, min: 4, max: 24, step: 0.01 },
+    cameraZMobile: { value: 5.25, min: 4, max: 24, step: 0.01 },
     cameraFovMobile: { value: 36, min: 15, max: 80, step: 0.1 },
     cameraLerp: { value: 0.1, min: 0.01, max: 0.4, step: 0.01 },
   });
@@ -658,14 +717,26 @@ export default function NameAsciiScene() {
         const normalizedY = Math.min(1, Math.max(0, clientY / height));
         pointerRef.current.targetX = normalizedX * 2 - 1;
         pointerRef.current.targetY = 1 - normalizedY * 2;
+        pointerRef.current.active = true;
       } else {
+        const isInsideBounds =
+          clientX >= bounds.left &&
+          clientX <= bounds.right &&
+          clientY >= bounds.top &&
+          clientY <= bounds.bottom;
+        if (!isInsideBounds) {
+          pointerRef.current.targetX = 0;
+          pointerRef.current.targetY = 0;
+          pointerRef.current.active = false;
+          return;
+        }
+
         const localX = Math.min(1, Math.max(0, (clientX - bounds.left) / bounds.width));
         const localY = Math.min(1, Math.max(0, (clientY - bounds.top) / bounds.height));
         pointerRef.current.targetX = localX * 2 - 1;
         pointerRef.current.targetY = 1 - localY * 2;
+        pointerRef.current.active = true;
       }
-
-      pointerRef.current.active = true;
     };
 
     const handleMouseMove = (event) => {
@@ -729,47 +800,49 @@ export default function NameAsciiScene() {
   return (
     <>
       <Leva hidden={!showLeva} theme={LEVA_THEME} />
-      <div ref={containerRef} className="home-scene-canvas" aria-hidden="true">
-        <Canvas camera={{ position: [0, 0, 10.2], fov: 36 }} dpr={[1, 1.5]} gl={{ antialias: false }}>
-          <SceneDiagnostics enabled={diagnosticsEnabled} />
-          <HomeCameraRig isMobile={isMobileViewport} controls={cameraControls} />
-          <color attach="background" args={["#000000"]} />
-          {!renderControls.matcapMode ? (
-            <>
-              <ambientLight intensity={lightControls.ambientIntensity} color={lightControls.ambientColor} />
-              <directionalLight
-                position={[lightControls.mainX, lightControls.mainY, lightControls.mainZ]}
-                intensity={lightControls.mainIntensity}
-                color={lightControls.mainColor}
-              />
-              <directionalLight
-                position={[lightControls.secondaryX, lightControls.secondaryY, lightControls.secondaryZ]}
-                intensity={lightControls.secondaryIntensity}
-                color={lightControls.secondaryColor}
-              />
-            </>
-          ) : null}
+      <div className="home-scene-stage" aria-hidden="true">
+        <div ref={containerRef} className="home-scene-canvas" style={sceneWindowStyle}>
+          <Canvas camera={{ position: [0, 0, 10.2], fov: 36 }} dpr={[1, 1.5]} gl={{ antialias: false }}>
+            <SceneDiagnostics enabled={renderControls.performance} />
+            <HomeCameraRig isMobile={isMobileViewport} controls={cameraControls} />
+            <color attach="background" args={["#000000"]} />
+            {!renderControls.matcapMode ? (
+              <>
+                <ambientLight intensity={lightControls.ambientIntensity} color={lightControls.ambientColor} />
+                <directionalLight
+                  position={[lightControls.mainX, lightControls.mainY, lightControls.mainZ]}
+                  intensity={lightControls.mainIntensity}
+                  color={lightControls.mainColor}
+                />
+                <directionalLight
+                  position={[lightControls.secondaryX, lightControls.secondaryY, lightControls.secondaryZ]}
+                  intensity={lightControls.secondaryIntensity}
+                  color={lightControls.secondaryColor}
+                />
+              </>
+            ) : null}
 
-          <NameText3D
-            isMobileHintActive={isMobileViewport && showMobileHint}
-            pointerRef={pointerRef}
-            useMatcap={renderControls.matcapMode}
-            fontPresetKey={renderControls.fontPreset}
-            matcapRotationDeg={renderControls.matcapRotation}
-            matcapLightDistance={renderControls.matcapLightDistance}
-          />
-
-          {renderControls.asciiEnabled ? (
-            <AsciiRendererOptimized
-              key={asciiRendererKey}
-              fgColor="white"
-              bgColor="black"
-              characters={activeAsciiCharacters}
-              invert
-              resolution={asciiResolution}
+            <NameText3D
+              isMobileHintActive={isMobileViewport && showMobileHint}
+              pointerRef={pointerRef}
+              useMatcap={renderControls.matcapMode}
+              fontPresetKey={renderControls.fontPreset}
+              matcapRotationDeg={renderControls.matcapRotation}
+              matcapLightDistance={renderControls.matcapLightDistance}
             />
-          ) : null}
-        </Canvas>
+
+            {renderControls.asciiEnabled ? (
+              <AsciiRendererOptimized
+                key={asciiRendererKey}
+                fgColor="white"
+                bgColor="black"
+                characters={activeAsciiCharacters}
+                invert
+                resolution={asciiResolution}
+              />
+            ) : null}
+          </Canvas>
+        </div>
       </div>
     </>
   );

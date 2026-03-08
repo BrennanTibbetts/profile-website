@@ -190,9 +190,26 @@
   overflow: hidden;
 }
 
-.home-scene-canvas {
+.home-scene-stage {
   position: absolute;
   inset: 0;
+  background: #000000;
+  pointer-events: none;
+}
+
+.home-scene-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 62vw;
+  height: 52vh;
+  max-width: 1400px;
+  max-height: 840px;
+  transform: translate(-50%, calc(-50% + 6vh));
+  background: #000000;
+  overflow: hidden;
+  border-radius: 22px;
+  box-sizing: border-box;
   pointer-events: none;
 }
 
