@@ -13,7 +13,7 @@ const AWS_SLIDE_INDEX = 1;
 const CONNECTOR_SLIDE_INDEX = 2;
 const TOTAL_SLIDES = 3;
 const DEG_TO_RAD = Math.PI / 180;
-const MOBILE_SCENE_VERTICAL_OFFSET = 2.4;
+const MOBILE_SCENE_VERTICAL_OFFSET = 1.4;
 
 function getWrappedDelta(index, centerIndex, totalSlides = TOTAL_SLIDES) {
   const halfRange = totalSlides / 2;
@@ -21,8 +21,8 @@ function getWrappedDelta(index, centerIndex, totalSlides = TOTAL_SLIDES) {
   return ((rawDelta + halfRange) % totalSlides + totalSlides) % totalSlides - halfRange;
 }
 
-function getSlidePosition(index, centerIndex, isMobile, yOffset = 0) {
-  const laneIndex = centerIndex + getWrappedDelta(index, centerIndex, TOTAL_SLIDES);
+function getSlidePosition(index, centerIndex, isMobile, yOffset = 0, totalSlides = TOTAL_SLIDES) {
+  const laneIndex = centerIndex + getWrappedDelta(index, centerIndex, totalSlides);
 
   if (isMobile) {
     return [0, MOBILE_SCENE_VERTICAL_OFFSET + yOffset - laneIndex * MOBILE_SLIDE_SPACING, SLIDE_DEPTH];
@@ -44,7 +44,9 @@ function toRadianRange(a, b) {
 export default function Experience({
   viewIndex = 0,
   layoutIndex = viewIndex,
+  totalSlides = TOTAL_SLIDES,
   isMobile = false,
+  mobilePhoneInteractionEnabled = false,
   diagnosticsEnabled = false,
   disableConnectorInteraction = false,
   onPresentationDragStart,
@@ -165,7 +167,9 @@ export default function Experience({
     Math.max(props.awsFloatYLow, props.awsFloatYHigh),
   ];
   const phoneControlsEnabled =
-    !isMobile && viewIndex === PHONE_SLIDE_INDEX && props.phonePresentationEnabled;
+    viewIndex === PHONE_SLIDE_INDEX &&
+    props.phonePresentationEnabled &&
+    (!isMobile || mobilePhoneInteractionEnabled);
   const phoneSnapConfig = props.phonePresentationSnap
     ? {
         mass: props.phonePresentationSnapMass,
@@ -173,7 +177,7 @@ export default function Experience({
         friction: props.phonePresentationSnapFriction,
       }
     : false;
-  const shouldUsePhoneFloat = isMobile && props.phoneFloatEnabled;
+  const shouldUsePhoneFloat = isMobile && props.phoneFloatEnabled && !mobilePhoneInteractionEnabled;
 
   return (
     <>
@@ -182,7 +186,7 @@ export default function Experience({
       <Lights modelLighting={modelLightingPresets.phone} />
       <Environment preset={props.environmentPreset} />
 
-      <group position={getSlidePosition(PHONE_SLIDE_INDEX, layoutIndex, isMobile, 0)}>
+      <group position={getSlidePosition(PHONE_SLIDE_INDEX, layoutIndex, isMobile, 0, totalSlides)}>
         {shouldUsePhoneFloat ? (
           <Float
             speed={props.phoneFloatSpeed}
@@ -249,7 +253,7 @@ export default function Experience({
           </PresentationControls>
         )}
       </group>
-      <group position={getSlidePosition(AWS_SLIDE_INDEX, layoutIndex, isMobile, -1)}>
+      <group position={getSlidePosition(AWS_SLIDE_INDEX, layoutIndex, isMobile, -1, totalSlides)}>
         {props.awsFloatEnabled ? (
           <Float
             speed={props.awsFloatSpeed}
@@ -287,7 +291,7 @@ export default function Experience({
       </group>
       <group
         ref={connectorAnchorRef}
-        position={getSlidePosition(CONNECTOR_SLIDE_INDEX, layoutIndex, isMobile, 0)}
+        position={getSlidePosition(CONNECTOR_SLIDE_INDEX, layoutIndex, isMobile, 0, totalSlides)}
       />
       <ConnectorClusterModel
         isActive={viewIndex === CONNECTOR_SLIDE_INDEX}

@@ -5,12 +5,37 @@
   height: 100%;
   position: relative;
   background: #000000;
+  /* Shared mobile dock geometry for info card + interaction button alignment */
+  --mobile-overlay-side: 12px;
+  --mobile-info-card-bottom: calc(env(safe-area-inset-bottom) + 14px);
+  --mobile-info-card-height: 172px;
+  --mobile-info-interaction-gap: 10px;
 }
 
 .canvas-container canvas {
   width: 100% !important;
   height: 100% !important;
   display: block;
+}
+
+.mobile-scene-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 260ms ease, transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mobile-scene-layer.is-hidden {
+  opacity: 0;
+  transform: scale(0.985);
+  pointer-events: none;
+}
+
+.mobile-scene-layer.is-active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
 }
 
 .scene-diagnostics-layer {

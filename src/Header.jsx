@@ -1,12 +1,8 @@
 import { bioText } from './data';
-import { useState } from 'react';
 
 export default function Header({ onBack, onHeaderClick, showBack = false }) {
-  const [hasClicked, setHasClicked] = useState(false);
-
   const handleClick = () => {
     if (onHeaderClick) {
-      setHasClicked(true);
       onHeaderClick();
     }
   };
@@ -50,11 +46,6 @@ export default function Header({ onBack, onHeaderClick, showBack = false }) {
           <hr className="divider" />
         </div>
       </div>
-      {!hasClicked && (
-        <div className="header-hint">
-          <div className="text">^ CLICK TO LEARN MORE ABOUT ME</div>
-        </div>
-      )}
     </div>
   );
 }

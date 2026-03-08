@@ -62,13 +62,14 @@ export default function MobileInfoPanel({
         className={`mobile-info-peek ${isOpen ? "is-open" : ""}`}
         onClick={handleExpand}
         aria-expanded={isOpen}
-        aria-label="Expand slide details"
+        aria-label={`Expand details for ${project.title ?? "this slide"}`}
       >
-        <div className="mobile-info-peek-head">
-          <h3 className="mobile-info-peek-title">{project.title}</h3>
-        </div>
         <div className={`mobile-info-peek-body view-info-content ${phase}`}>
           <p className="mobile-info-preview-paragraph">{renderInlineText(previewParagraph, `peek-${renderedIndex}`)}</p>
+        </div>
+        <div className="mobile-info-peek-hint" aria-hidden="true">
+          <span className="mobile-info-peek-hint-label">Tap to read more</span>
+          <span className="mobile-info-peek-hint-arrow">›</span>
         </div>
       </button>
 
@@ -81,22 +82,16 @@ export default function MobileInfoPanel({
         }}
       >
         <div className="mobile-info-sheet-panel">
-          <div className="mobile-info-header">
-            <h2 className="title">{project.title}</h2>
-            <button className="close-info-btn" onClick={() => onClose?.()}>
-              ×
-            </button>
-          </div>
           <div ref={sheetBodyRef} className="mobile-info-body">
             <div className={`view-info-content ${phase}`}>
               {renderParagraphsAsNodes(project.description, "", renderedIndex)}
             </div>
           </div>
-          <div className="mobile-info-sheet-footer">
-            <button type="button" className="mobile-info-back-btn" onClick={() => onClose?.()}>
-              Back
-            </button>
-          </div>
+        </div>
+        <div className="mobile-info-sheet-footer">
+          <button type="button" className="mobile-info-back-btn" onClick={() => onClose?.()}>
+            Back
+          </button>
         </div>
       </div>
     </div>

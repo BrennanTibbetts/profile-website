@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { projects } from '../projects';
 
 const SLIDE_QUERY_KEY = 'slide';
-const TOTAL_SLIDES = Math.max(projects.length, 1);
+const DEFAULT_TOTAL_SLIDES = Math.max(projects.length, 1);
 
-function clampSlideIndex(value) {
+function clampSlideIndex(value, totalSlides = DEFAULT_TOTAL_SLIDES) {
   if (!Number.isFinite(value)) {
     return 0;
   }
 
-  const maxIndex = Math.max(projects.length - 1, 0);
+  const maxIndex = Math.max(totalSlides - 1, 0);
   const normalized = Math.trunc(value);
   if (normalized < 0) {
     return 0;
@@ -22,16 +22,18 @@ function clampSlideIndex(value) {
   return normalized;
 }
 
-function wrapSlideIndex(value) {
+function wrapSlideIndex(value, totalSlides = DEFAULT_TOTAL_SLIDES) {
+  const normalizedTotal = Math.max(1, Math.trunc(totalSlides));
+
   if (!Number.isFinite(value)) {
     return 0;
   }
 
-  const normalized = Math.trunc(value) % TOTAL_SLIDES;
-  return normalized < 0 ? normalized + TOTAL_SLIDES : normalized;
+  const normalized = Math.trunc(value) % normalizedTotal;
+  return normalized < 0 ? normalized + normalizedTotal : normalized;
 }
 
-function getInitialSlideIndex() {
+function getInitialSlideIndex(totalSlides = DEFAULT_TOTAL_SLIDES) {
   if (typeof window === 'undefined') {
     return 0;
   }
@@ -41,25 +43,32 @@ function getInitialSlideIndex() {
     return 0;
   }
 
-  return clampSlideIndex(Number.parseInt(rawValue, 10));
+  return clampSlideIndex(Number.parseInt(rawValue, 10), totalSlides);
 }
 
 /**
  * Custom hook to manage view/slide state and related UI states
  * @returns {Object} View state and handlers
  */
-export function useViewState() {
-  const [viewIndex, setViewIndex] = useState(() => clampSlideIndex(getInitialSlideIndex()));
+export function useViewState(totalSlides = DEFAULT_TOTAL_SLIDES) {
+  const normalizedTotalSlides = Math.max(1, Math.trunc(totalSlides));
+  const [viewIndex, setViewIndex] = useState(() =>
+    clampSlideIndex(getInitialSlideIndex(normalizedTotalSlides), normalizedTotalSlides)
+  );
   const [showLeva, setShowLeva] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showBio, setShowBio] = useState(false);
 
   const prev = () => {
-    setViewIndex((index) => wrapSlideIndex(index - 1));
+    setViewIndex((index) => wrapSlideIndex(index - 1, normalizedTotalSlides));
   };
 
   const next = () => {
-    setViewIndex((index) => wrapSlideIndex(index + 1));
+    setViewIndex((index) => wrapSlideIndex(index + 1, normalizedTotalSlides));
+  };
+
+  const goTo = (index) => {
+    setViewIndex(wrapSlideIndex(index, normalizedTotalSlides));
   };
 
   const toggleLeva = () => setShowLeva((s) => !s);
@@ -105,10 +114,15 @@ export function useViewState() {
     window.history.replaceState(window.history.state, '', nextUrl);
   }, [viewIndex]);
 
+  useEffect(() => {
+    setViewIndex((index) => wrapSlideIndex(index, normalizedTotalSlides));
+  }, [normalizedTotalSlides]);
+
   return {
     viewIndex,
     prev,
     next,
+    goTo,
     showLeva,
     showInfo,
     setShowInfo,
