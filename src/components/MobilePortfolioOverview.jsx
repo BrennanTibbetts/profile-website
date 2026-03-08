@@ -134,33 +134,24 @@ export default function MobilePortfolioOverview({
       </div>
 
       <div
-        className={`mobile-overview-about-sheet ${aboutOpen ? "is-open" : ""}`}
+        className={`mobile-info-sheet ${aboutOpen ? "is-open" : ""}`}
         onClick={(event) => {
           if (event.target === event.currentTarget) {
             setAboutOpen(false);
           }
         }}
       >
-        <div className="mobile-overview-about-sheet-panel">
-          <div className="mobile-overview-about-sheet-header">
-            <h3>About Me</h3>
-            <button
-              type="button"
-              className="close-info-btn"
-              onClick={() => setAboutOpen(false)}
-              aria-label="Close about me details"
-            >
-              ×
-            </button>
+        <div className="mobile-info-sheet-panel">
+          <div className="mobile-info-body">
+            <div className="view-info-content is-entered">
+              <p>{bioText}</p>
+            </div>
           </div>
-          <div className="mobile-overview-about-sheet-body">
-            <p>{bioText}</p>
-          </div>
-          <div className="mobile-overview-about-sheet-footer">
-            <button type="button" className="mobile-info-back-btn" onClick={() => setAboutOpen(false)}>
-              Back
-            </button>
-          </div>
+        </div>
+        <div className="mobile-info-sheet-footer">
+          <button type="button" className="mobile-info-back-btn" onClick={() => setAboutOpen(false)}>
+            Back
+          </button>
         </div>
       </div>
     </div>
