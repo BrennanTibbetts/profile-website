@@ -488,7 +488,6 @@ export default function PortfolioPage({ pathname, navigate }) {
             <MobileInfoPanel
               viewIndex={viewIndex}
               isOpen={showInfo}
-              hidden={isConnectorInteractionMode}
               onOpen={() => {
                 setShowInfo(true);
               }}

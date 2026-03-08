@@ -13,6 +13,7 @@ const AWS_SLIDE_INDEX = 1;
 const CONNECTOR_SLIDE_INDEX = 2;
 const TOTAL_SLIDES = 3;
 const DEG_TO_RAD = Math.PI / 180;
+const MOBILE_SCENE_VERTICAL_OFFSET = 2.4;
 
 function getWrappedDelta(index, centerIndex, totalSlides = TOTAL_SLIDES) {
   const halfRange = totalSlides / 2;
@@ -24,7 +25,7 @@ function getSlidePosition(index, centerIndex, isMobile, yOffset = 0) {
   const laneIndex = centerIndex + getWrappedDelta(index, centerIndex, TOTAL_SLIDES);
 
   if (isMobile) {
-    return [0, yOffset - laneIndex * MOBILE_SLIDE_SPACING, SLIDE_DEPTH];
+    return [0, MOBILE_SCENE_VERTICAL_OFFSET + yOffset - laneIndex * MOBILE_SLIDE_SPACING, SLIDE_DEPTH];
   }
 
   return [laneIndex * DESKTOP_SLIDE_SPACING, yOffset, SLIDE_DEPTH];

@@ -14,7 +14,6 @@ export default function MobileInfoPanel({
   isOpen = false,
   onOpen,
   onClose,
-  hidden = false,
 }) {
   const [renderedIndex, setRenderedIndex] = useState(viewIndex);
   const [phase, setPhase] = useState("is-entered");
@@ -52,23 +51,12 @@ export default function MobileInfoPanel({
     return () => window.cancelAnimationFrame(rafId);
   }, [phase]);
 
-  useEffect(() => {
-    if (!hidden || !isOpen) {
-      return;
-    }
-
-    onClose?.();
-  }, [hidden, isOpen, onClose]);
-
   const handleExpand = () => {
-    if (hidden) {
-      return;
-    }
     onOpen?.();
   };
 
   return (
-    <div className={`mobile-info-dock ${hidden ? "is-hidden" : ""}`}>
+    <div className="mobile-info-dock">
       <button
         type="button"
         className={`mobile-info-peek ${isOpen ? "is-open" : ""}`}
@@ -77,7 +65,6 @@ export default function MobileInfoPanel({
         aria-label="Expand slide details"
       >
         <div className="mobile-info-peek-head">
-          <span className="mobile-info-peek-eyebrow">About This Slide</span>
           <h3 className="mobile-info-peek-title">{project.title}</h3>
         </div>
         <div className={`mobile-info-peek-body view-info-content ${phase}`}>

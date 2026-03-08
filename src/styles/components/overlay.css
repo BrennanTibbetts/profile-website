@@ -97,10 +97,6 @@
   z-index: 24;
 }
 
-.mobile-info-dock.is-hidden {
-  opacity: 0;
-}
-
 .mobile-info-peek {
   appearance: none;
   -webkit-appearance: none;
