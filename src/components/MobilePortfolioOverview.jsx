@@ -1,26 +1,7 @@
 import { useMemo, useState } from "react";
 import { bioText } from "../data";
-
-const SOCIAL_ITEMS = [
-  {
-    id: "github",
-    label: "GitHub",
-    href: "https://github.com/BrennanTibbetts",
-    icon: "/images/github.png",
-  },
-  {
-    id: "email",
-    label: "Email",
-    href: "mailto:brennanTtibbetts@gmail.com",
-    icon: "/images/email.png",
-  },
-  {
-    id: "linkedin",
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/in/brennan-t-tibbetts/",
-    icon: "/images/linkedin.png",
-  },
-];
+import SiteTopNav from "./SiteTopNav";
+import SocialThemeRow from "./SocialThemeRow";
 
 const SLIDE_LOGOS = [
   {
@@ -47,6 +28,8 @@ function getBioPreview(text = "") {
 }
 
 export default function MobilePortfolioOverview({
+  pathname,
+  navigate,
   projects = [],
   isActive = false,
   launchingSlideIndex = null,
@@ -59,27 +42,28 @@ export default function MobilePortfolioOverview({
   return (
     <div className={`mobile-overview-layer ${isActive ? "is-active" : "is-hidden"}`}>
       <div className="mobile-overview-surface">
+        <header className="mobile-portfolio-topbar">
+          <SiteTopNav
+            pathname={pathname}
+            navigate={navigate}
+            showHome={false}
+            showPortfolio
+            showBlog
+            className="mobile-portfolio-nav"
+          />
+          <SocialThemeRow className="mobile-portfolio-social" />
+        </header>
+
         <section className="mobile-overview-profile-card">
-          <div className="mobile-overview-avatar-block" aria-hidden="true">
-            <div className="mobile-overview-avatar" />
+          <div className="mobile-overview-avatar-block">
+            <img
+              src="/images/profile.png"
+              alt="Brennan Tibbetts"
+              className="mobile-overview-avatar"
+            />
           </div>
           <h2 className="mobile-overview-name">Brennan Tibbetts</h2>
           <p className="mobile-overview-handle">brennanTtibbetts@gmail.com</p>
-          <div className="mobile-overview-social-row" aria-label="Social links">
-            {SOCIAL_ITEMS.map((item) => (
-              <a
-                key={item.id}
-                className="mobile-overview-social-btn"
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={item.label}
-                aria-label={item.label}
-              >
-                <img src={item.icon} alt="" aria-hidden="true" className="mobile-overview-social-icon" />
-              </a>
-            ))}
-          </div>
         </section>
 
         <button
@@ -138,7 +122,7 @@ export default function MobilePortfolioOverview({
       </div>
 
       <div
-        className={`mobile-info-sheet ${aboutOpen ? "is-open" : ""}`}
+        className={`mobile-info-sheet mobile-overview-about-sheet ${aboutOpen ? "is-open" : ""}`}
         onClick={(event) => {
           if (event.target === event.currentTarget) {
             setAboutOpen(false);

@@ -267,27 +267,50 @@
   }
 }
 
-.home-topbar {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  right: 24px;
-  z-index: 60;
+:is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
 
-.home-topbar .site-top-nav {
+.home-topbar,
+.blog-topbar,
+.portfolio-topbar {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  z-index: 60;
+}
+
+:is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-top-nav {
   position: static;
   top: auto;
   left: auto;
   transform: none;
 }
 
-.home-topbar .site-social-row {
+:is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-social-row {
   justify-content: flex-end;
+}
+
+:is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-social-row .social-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-social-row .social-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  filter: invert(1) brightness(1.04);
 }
 
 .site-name {
@@ -330,28 +353,6 @@
   overflow-y: auto;
 }
 
-.blog-topbar {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  right: 24px;
-  z-index: 60;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.blog-topbar .site-top-nav {
-  position: static;
-  top: auto;
-  left: auto;
-  transform: none;
-}
-
-.blog-topbar .site-social-row {
-  justify-content: flex-end;
-}
 
 .blog-page-header h1,
 .blog-page-header p {
@@ -630,18 +631,22 @@
     padding-top: 88px;
   }
 
-  .home-topbar {
+  .home-topbar,
+  .blog-topbar,
+  .portfolio-topbar {
     top: max(12px, env(safe-area-inset-top));
     left: 12px;
     right: 12px;
+  }
+
+  :is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) {
     gap: 8px;
     flex-wrap: nowrap;
     align-items: flex-start;
     justify-content: space-between;
   }
 
-  .home-topbar .site-top-nav,
-  .blog-topbar .site-top-nav {
+  :is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-top-nav {
     flex: 1 1 auto;
     min-width: 0;
     width: auto;
@@ -659,8 +664,7 @@
     -webkit-backdrop-filter: blur(10px);
   }
 
-  .home-topbar .site-social-row,
-  .blog-topbar .site-social-row {
+  :is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-social-row {
     flex: 0 0 auto;
     flex-wrap: nowrap;
     width: auto;
@@ -676,8 +680,7 @@
     justify-content: flex-end;
   }
 
-  .home-topbar .site-nav-btn,
-  .blog-topbar .site-nav-btn {
+  :is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-nav-btn {
     flex: 1 1 0;
     width: auto;
     min-width: 0;
@@ -692,21 +695,14 @@
     letter-spacing: 0.3px;
   }
 
-  .home-topbar .site-nav-btn.is-active,
-  .blog-topbar .site-nav-btn.is-active {
-    display: none;
-  }
-
-  .home-topbar .site-nav-btn.is-active,
-  .blog-topbar .site-nav-btn.is-active {
+  :is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-nav-btn.is-active {
     border-color: rgba(255, 255, 255, 0.22);
     background: rgba(255, 255, 255, 0.12);
     color: rgba(205, 205, 205, 0.95);
     font-style: italic;
   }
 
-  .home-topbar .site-social-row .social-btn,
-  .blog-topbar .site-social-row .social-btn {
+  :is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-social-row .social-btn {
     width: 44px;
     height: 44px;
     border-radius: 10px;
@@ -714,8 +710,7 @@
     background: transparent;
   }
 
-  .home-topbar .site-social-row .social-btn img,
-  .blog-topbar .site-social-row .social-btn img {
+  :is(.home-topbar, .blog-topbar, .portfolio-topbar, .mobile-portfolio-topbar) .site-social-row .social-btn img {
     width: 30px;
     height: 30px;
   }
@@ -728,16 +723,6 @@
 
   .blog-main {
     padding: 132px 16px 34px;
-  }
-
-  .blog-topbar {
-    top: max(12px, env(safe-area-inset-top));
-    left: 12px;
-    right: 12px;
-    gap: 8px;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-    justify-content: space-between;
   }
 
   .blog-featured-card,

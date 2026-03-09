@@ -4,6 +4,7 @@
   position: absolute;
   inset: 0;
   z-index: 48;
+  --mobile-overview-about-sheet-top: calc(env(safe-area-inset-top) + 78px);
   opacity: 0;
   transform: translateY(14px) scale(0.985);
   pointer-events: none;
@@ -29,15 +30,12 @@
   min-height: 100%;
   --mobile-overview-about-card-max-height: 22vh;
   --mobile-overview-about-card-max-height: 22svh;
-  padding: calc(env(safe-area-inset-top) + 16px) 14px calc(env(safe-area-inset-bottom) + 16px);
+  padding: max(12px, env(safe-area-inset-top)) 12px calc(env(safe-area-inset-bottom) + 16px);
   display: flex;
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
-  background:
-    radial-gradient(100% 64% at 12% -6%, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0) 58%),
-    radial-gradient(102% 72% at 88% 108%, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0) 56%),
-    #000000;
+  background: #000000;
 }
 
 .mobile-overview-profile-card {
@@ -72,7 +70,9 @@
   height: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 16px;
-  background: linear-gradient(165deg, rgba(78, 89, 114, 0.92) 0%, rgba(52, 60, 80, 0.92) 100%);
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .mobile-overview-name {
@@ -215,6 +215,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(241, 241, 241, 0.76);
+}
+
+.mobile-overview-about-sheet .mobile-info-sheet-panel {
+  top: var(--mobile-overview-about-sheet-top);
 }
 
 .mobile-overview-about-card {

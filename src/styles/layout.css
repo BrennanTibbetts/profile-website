@@ -9,9 +9,22 @@
   flex-direction: row;
   gap: 12px;
   background: #000000;
+  transition: gap 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.main.desktop-overview-active {
+  gap: 0;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .panel-left {
+  --left-label-size: 12px;
+  --left-caption-size: 13px;
+  --left-body-size: 14px;
+  --left-subtitle-size: 17px;
+  --left-title-size: 40px;
+  --left-body-line-height: 1.58;
   width: 33%;
   min-width: 300px;
   margin: 14px 0 14px 14px;
@@ -31,6 +44,100 @@
   height: auto;
   min-height: 0;
   overflow: hidden;
+  font-size: var(--left-body-size);
+  transition:
+    width 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    flex-basis 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-right 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel-left.desktop-overview-panel {
+  width: min(1060px, calc(100% - 32px));
+  flex: 0 0 min(1060px, calc(100% - 32px));
+  margin: 84px auto 14px;
+  padding: 0;
+  height: calc(100dvh - 98px);
+  max-height: calc(100dvh - 98px);
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.panel-left.desktop-slides-panel {
+  margin: 84px 0 14px 14px;
+  padding: 0;
+  height: calc(100dvh - 98px);
+  max-height: calc(100dvh - 98px);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  overflow: hidden;
+}
+
+.desktop-panel-content {
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition: opacity 190ms ease, transform 230ms cubic-bezier(0.22, 1, 0.36, 1), filter 210ms ease;
+  will-change: opacity, transform, filter;
+}
+
+.panel-left.desktop-overview-panel .desktop-panel-content {
+  height: 100%;
+}
+
+.panel-left.desktop-slides-panel .desktop-panel-content {
+  height: 100%;
+}
+
+.desktop-panel-content.is-leaving {
+  opacity: 0;
+  transform: translateY(11px);
+  filter: blur(1.8px);
+  pointer-events: none;
+}
+
+.desktop-panel-content.is-entering {
+  opacity: 0;
+  transform: translateY(-9px);
+  filter: blur(1.8px);
+}
+
+.desktop-panel-content.is-entered {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.desktop-floating-window {
+  border-radius: 20px;
+  border: 1px solid var(--glass-surface-border);
+  background: var(--glass-surface-bg);
+  box-shadow: var(--glass-surface-shadow), inset 0 1px 0 var(--glass-surface-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
+  backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
+}
+
+.desktop-primary-window {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 18px 20px;
+  overflow: hidden;
+}
+
+.desktop-experience-window {
+  flex: 0 0 auto;
+  padding: 14px 14px 13px;
 }
 
 .panel-left::-webkit-scrollbar {
@@ -72,15 +179,24 @@
 }
 
 .panel-left .view-info {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #b0b0b0;
-  padding-top: 12px;
+  font-size: var(--left-body-size);
+  line-height: var(--left-body-line-height);
+  color: rgba(226, 226, 226, 0.82);
+  padding-top: 8px;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
   margin-right: -4px;
+}
+
+.panel-left .view-info .project-title {
+  margin: 0 0 14px;
+  font-size: 31px;
+  line-height: 1.16;
+  letter-spacing: 0.012em;
+  font-weight: 700;
+  color: #f2f2f2;
 }
 
 .panel-left .view-info::-webkit-scrollbar {
@@ -103,6 +219,13 @@
 
 .panel-left .view-info p {
   margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.panel-left .view-info p + p {
+  margin-top: 11px;
 }
 
 .view-info .view-info-content {
@@ -148,7 +271,7 @@
   padding: 2px 6px;
   border-radius: 6px;
   font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
-  font-size: 0.9em;
+  font-size: 0.86em;
   margin: 0 4px;
 }
 
@@ -160,7 +283,7 @@
   padding: 2px 6px;
   border-radius: 6px;
   font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
-  font-size: 0.9em;
+  font-size: 0.86em;
   margin: 0 4px;
 }
 
@@ -172,16 +295,47 @@
   padding: 2px 6px;
   border-radius: 6px;
   font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
-  font-size: 0.9em;
+  font-size: 0.86em;
   margin: 0 4px;
 }
 
 .panel-right {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   position: relative;
   min-height: 0;
+  min-width: 0;
   display: flex;
   align-items: stretch;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    flex-grow 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease,
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: flex-grow, opacity, transform;
+}
+
+.panel-right.is-collapsed {
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: 0%;
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  transform: translateX(26px);
+  pointer-events: none;
+}
+
+.panel-right .canvas-container {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  transition: opacity 240ms ease, transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel-right.is-collapsed .canvas-container {
+  opacity: 0;
+  transform: translateX(24px) scale(0.988);
 }
 
 .landscape-warning {
@@ -210,4 +364,19 @@
         font-weight: 500;
         margin: 0;
     }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main,
+  .panel-left,
+  .panel-right,
+  .desktop-panel-content {
+    transition: none;
+  }
+
+  .desktop-panel-content {
+    transform: none;
+    filter: none;
+    opacity: 1;
+  }
 }

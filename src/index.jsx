@@ -6,6 +6,8 @@ import PortfolioPage from "./pages/PortfolioPage";
 import { BlogIndexPage, BlogPostPage } from "./pages/BlogPage";
 import { preloadPortfolioAssets } from "./utils/preloadPortfolioAssets";
 
+const MOBILE_BREAKPOINT = 768;
+
 function normalizePathname(pathname) {
   if (!pathname) {
     return "/";
@@ -16,6 +18,16 @@ function normalizePathname(pathname) {
   }
 
   return pathname;
+}
+
+function normalizePathnameForViewport(pathname, isMobileViewport) {
+  const normalizedPath = normalizePathname(pathname);
+
+  if (isMobileViewport && normalizedPath === "/") {
+    return "/portfolio";
+  }
+
+  return normalizedPath;
 }
 
 function parseRoute(pathname) {
@@ -83,7 +95,9 @@ function NotFoundPage({ pathname, navigate }) {
 }
 
 function App() {
-  const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
+  const [pathname, setPathname] = useState(() =>
+    normalizePathnameForViewport(window.location.pathname, window.innerWidth <= MOBILE_BREAKPOINT)
+  );
 
   const route = useMemo(() => parseRoute(pathname), [pathname]);
 
@@ -92,17 +106,43 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const initialIsMobileViewport = window.innerWidth <= MOBILE_BREAKPOINT;
+    const initialNormalizedPath = normalizePathnameForViewport(window.location.pathname, initialIsMobileViewport);
+    if (initialNormalizedPath !== normalizePathname(window.location.pathname)) {
+      window.history.replaceState(window.history.state, "", initialNormalizedPath);
+      setPathname(initialNormalizedPath);
+    }
+
     const handlePopState = () => {
-      setPathname(normalizePathname(window.location.pathname));
+      const isMobileViewport = window.innerWidth <= MOBILE_BREAKPOINT;
+      const normalizedPath = normalizePathnameForViewport(window.location.pathname, isMobileViewport);
+      if (normalizedPath !== normalizePathname(window.location.pathname)) {
+        window.history.replaceState(window.history.state, "", normalizedPath);
+      }
+      setPathname(normalizedPath);
+    };
+
+    const handleResize = () => {
+      const isMobileViewport = window.innerWidth <= MOBILE_BREAKPOINT;
+      const normalizedPath = normalizePathnameForViewport(window.location.pathname, isMobileViewport);
+      if (normalizedPath !== normalizePathname(window.location.pathname)) {
+        window.history.replaceState(window.history.state, "", normalizedPath);
+      }
+      setPathname(normalizedPath);
     };
 
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const navigate = useCallback((to) => {
-    const normalizedTarget = normalizePathname(to);
-    const currentPathname = normalizePathname(window.location.pathname);
+    const isMobileViewport = window.innerWidth <= MOBILE_BREAKPOINT;
+    const normalizedTarget = normalizePathnameForViewport(to, isMobileViewport);
+    const currentPathname = normalizePathnameForViewport(window.location.pathname, isMobileViewport);
 
     if (normalizedTarget === currentPathname) {
       return;

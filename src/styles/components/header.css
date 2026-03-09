@@ -26,19 +26,22 @@
 
 .panel-left .title {
   margin: 0 0 6px 0;
-  font-size: 40px;
-  letter-spacing: 0.6px;
-  font-weight: 600;
+  font-size: var(--left-title-size);
+  line-height: 1.04;
+  letter-spacing: 0.02em;
+  font-weight: 700;
 }
 
 .panel-left .subtitle {
   margin: 0;
-  font-size: 18px;
-  color: #cfcfcf;
+  font-size: var(--left-subtitle-size);
+  line-height: 1.25;
+  letter-spacing: 0.015em;
+  color: rgba(238, 238, 238, 0.88);
 }
 
 .panel-left .bio {
-  font-size: 15px;
-  line-height: 1.5;
-  color: #dcdcdc;
+  font-size: var(--left-body-size);
+  line-height: var(--left-body-line-height);
+  color: rgba(230, 230, 230, 0.82);
 }

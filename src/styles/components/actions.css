@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 8px;
   width: 100%;
 }
 
@@ -33,23 +33,23 @@
   font-family: inherit;
 }
 
-.social-btn {
+.panel-left .social-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   background: #111111;
-  border-radius: 6px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff;
   text-decoration: none;
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.social-btn img {
-  width: 36px;
-  height: 36px;
+.panel-left .social-btn img {
+  width: 24px;
+  height: 24px;
   display: block;
   filter: invert(1);
   transition: filter 160ms ease;
@@ -118,15 +118,15 @@
   }
 }
 
-.social-btn,
-.view-btn {
-  width: 48px;
-  height: 48px;
+.panel-left .social-btn,
+.panel-left .view-btn {
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: #111111;
-  border-radius: 6px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff;
   padding: 0;
@@ -134,21 +134,23 @@
 }
 
 /* Wider resume button */
-.resume-btn {
-  min-width: 80px;
-  height: 48px;
-  padding: 0 14px;
+.panel-left .resume-btn {
+  min-width: 96px;
+  height: 44px;
+  padding: 0 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: #111111;
-  border-radius: 6px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--left-caption-size);
+  letter-spacing: 0.06em;
+  font-weight: 700;
   cursor: pointer;
   gap: 8px;
+  text-transform: uppercase;
 }
 
 @keyframes pulse {

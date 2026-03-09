@@ -1,0 +1,253 @@
+/* Desktop overview surface */
+
+.desktop-overview {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: visible;
+  padding-right: 0;
+  margin-right: 0;
+}
+
+.desktop-overview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.desktop-overview::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.desktop-overview::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.desktop-overview-nav {
+  margin-bottom: 8px;
+  display: none;
+}
+
+.desktop-overview-profile-card {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.desktop-profile-window {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.desktop-profile-top {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.desktop-overview-avatar-block {
+  width: clamp(98px, 11vw, 128px);
+  height: clamp(98px, 11vw, 128px);
+  border-radius: 26px;
+  padding: 8px;
+  border: 1px solid var(--glass-surface-border);
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.desktop-overview-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.desktop-overview-name {
+  margin: 0;
+  font-size: clamp(42px, 4.4vw, 62px);
+  line-height: 1.02;
+  letter-spacing: 0.015em;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.desktop-overview-handle {
+  margin: 8px 0 0;
+  font-size: 19px;
+  line-height: 1.2;
+  color: rgba(233, 233, 233, 0.84);
+  letter-spacing: 0.02em;
+}
+
+.desktop-overview-social-row {
+  margin-top: 16px;
+  width: min(660px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.desktop-overview-social-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 50px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-surface-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: background-color 170ms ease, border-color 170ms ease, transform 130ms ease;
+}
+
+.desktop-overview-social-icon {
+  width: 25px;
+  height: 25px;
+  display: block;
+  filter: invert(1);
+  opacity: 0.96;
+}
+
+.desktop-overview-social-btn:active {
+  transform: translateY(1px);
+}
+
+.desktop-profile-separator {
+  width: 100%;
+  margin: 20px 0 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.desktop-profile-about {
+  width: 100%;
+  text-align: left;
+}
+
+.desktop-overview-about-card {
+  color: #ffffff;
+  padding: 0;
+}
+
+.desktop-overview-about-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(242, 242, 242, 0.76);
+}
+
+.desktop-overview-about-text {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.52;
+  color: rgba(246, 246, 246, 0.91);
+}
+
+.desktop-overview-resume-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-surface-border);
+  background: var(--glass-surface-bg);
+  color: #ffffff;
+  text-decoration: none;
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  box-shadow: var(--glass-surface-shadow), inset 0 1px 0 var(--glass-surface-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
+  backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
+  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.desktop-overview-resume-btn:active {
+  transform: translateY(1px);
+}
+
+.desktop-profile-resume-btn {
+  margin-top: auto;
+}
+
+.desktop-overview-resume-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background: #f59e0b;
+}
+
+.desktop-overview-resume-label {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.desktop-overview-resume-action {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(240, 240, 240, 0.78);
+}
+
+.desktop-overview-experience {
+  margin-top: 4px;
+}
+
+.desktop-overview-experience .desktop-experience-list {
+  max-width: none;
+}
+
+.desktop-slide-info-window-inner {
+  height: 100%;
+  min-height: 0;
+}
+
+.desktop-slide-info-window-inner .view-info {
+  padding-top: 0;
+  height: 100%;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .desktop-overview-social-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+
+  .desktop-overview-resume-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-overview-social-btn,
+  .desktop-overview-resume-btn {
+    transition: none;
+    transform: none;
+  }
+}

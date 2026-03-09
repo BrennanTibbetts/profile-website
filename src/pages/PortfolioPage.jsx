@@ -3,12 +3,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Leva, folder, useControls } from "leva";
 import * as THREE from "three";
 import Experience from "../Experience";
-import Header from "../Header";
-import Actions from "../Actions";
 import ViewInfo from "../ViewInfo";
 import MobileInfoPanel from "../components/MobileInfoPanel";
 import MobilePortfolioOverview from "../components/MobilePortfolioOverview";
+import DesktopProfileWindow from "../components/DesktopProfileWindow";
 import SiteTopNav from "../components/SiteTopNav";
+import SocialThemeRow from "../components/SocialThemeRow";
 import SlideTitlePanel from "../components/SlideTitlePanel";
 import SlideDotsIndicator from "../components/SlideDotsIndicator";
 import DesktopExperienceCards from "../components/DesktopExperienceCards";
@@ -29,6 +29,7 @@ const SWIPE_PROGRESS_DISTANCE = 0.72;
 const SWIPE_COMMIT_THRESHOLD = 0.24;
 const DRAG_DEADZONE_PX = 6;
 const SLIDE_SWIPE_ENABLED = true;
+const DESKTOP_PANEL_SWAP_EXIT_MS = 170;
 const DESKTOP_SCROLL_COMMIT_THRESHOLD = 44;
 const DESKTOP_SCROLL_ACCUM_RESET_MS = 170;
 const DESKTOP_SCROLL_INERTIA_RELEASE_MS = 150;
@@ -37,6 +38,7 @@ const AWS_SLIDE_INDEX = 1;
 const CONNECTOR_SLIDE_INDEX = 2;
 const SLIDE_QUERY_KEY = "slide";
 const MOBILE_VIEW_QUERY_KEY = "mobileView";
+const DESKTOP_VIEW_QUERY_KEY = "desktopView";
 
 const mod = (value, n) => ((value % n) + n) % n;
 
@@ -67,6 +69,29 @@ function getMobileSurfaceFromQuery(isMobileViewport) {
   }
 
   // Preserve deep-linking behavior when only a slide query is provided.
+  return searchParams.has(SLIDE_QUERY_KEY) ? "slides" : "overview";
+}
+
+function getInitialDesktopSurface(isMobileViewport) {
+  if (typeof window === "undefined") {
+    return "slides";
+  }
+
+  if (isMobileViewport) {
+    return "slides";
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const desktopView = searchParams.get(DESKTOP_VIEW_QUERY_KEY);
+
+  if (desktopView === "overview") {
+    return "overview";
+  }
+
+  if (desktopView === "slides") {
+    return "slides";
+  }
+
   return searchParams.has(SLIDE_QUERY_KEY) ? "slides" : "overview";
 }
 
@@ -161,6 +186,13 @@ export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isLikelyIOSWebKit] = useState(() => isIOSWebKit());
   const [hasCanvasFailure, setHasCanvasFailure] = useState(() => !canCreateWebGLContext());
+  const [desktopSurface, setDesktopSurface] = useState(() =>
+    getInitialDesktopSurface(window.innerWidth <= 768)
+  );
+  const [desktopPanelRenderedSurface, setDesktopPanelRenderedSurface] = useState(() =>
+    getInitialDesktopSurface(window.innerWidth <= 768)
+  );
+  const [desktopPanelPhase, setDesktopPanelPhase] = useState("is-entered");
   const [hasActivatedMobileCanvas, setHasActivatedMobileCanvas] = useState(
     () => window.innerWidth > 768
   );
@@ -179,6 +211,8 @@ export default function PortfolioPage({ pathname, navigate }) {
   const canvasContainerRef = useRef(null);
   const canvasContextCleanupRef = useRef(null);
   const mobileLaunchTimerRef = useRef(null);
+  const desktopPanelSwapTimerRef = useRef(null);
+  const desktopPanelEnterRafRef = useRef(null);
   const wasMobileRef = useRef(window.innerWidth <= 768);
   const gestureRef = useRef({
     active: false,
@@ -216,9 +250,11 @@ export default function PortfolioPage({ pathname, navigate }) {
     setShowInfo,
   } = useViewState(totalSlides);
   const [laneIndex, setLaneIndex] = useState(() => viewIndex);
+  const isDesktopOverview = !isMobile && desktopSurface === "overview";
+  const isDesktopSlides = !isMobile && desktopSurface === "slides";
   const isMobileOverview = isMobile && mobileSurface === "overview";
   const isMobileSlideMode = !isMobile || mobileSurface === "slides";
-  const shouldRenderCanvas = (!isMobile || hasActivatedMobileCanvas) && !hasCanvasFailure;
+  const shouldRenderCanvas = (isMobile ? hasActivatedMobileCanvas : true) && !hasCanvasFailure;
   const canvasDpr = isLikelyIOSWebKit ? [1, 1] : [1, 1.25];
   const canvasGlProps = isLikelyIOSWebKit
     ? { powerPreference: "default", antialias: false }
@@ -248,6 +284,31 @@ export default function PortfolioPage({ pathname, navigate }) {
       };
     });
   }, []);
+
+  const clearDesktopSlideSelection = useCallback(() => {
+    if (isMobile) {
+      return;
+    }
+
+    setDesktopSurface("overview");
+    setShowInfo(false);
+    isPresentationDraggingRef.current = false;
+    isDraggingRef.current = false;
+    slideOffsetRef.current = 0;
+    isCameraAnimatingRef.current = false;
+
+    const wheelState = desktopWheelRef.current;
+    wheelState.accumulated = 0;
+    wheelState.inertiaLock = false;
+    if (wheelState.resetTimerId !== null) {
+      window.clearTimeout(wheelState.resetTimerId);
+      wheelState.resetTimerId = null;
+    }
+    if (wheelState.inertiaReleaseTimerId !== null) {
+      window.clearTimeout(wheelState.inertiaReleaseTimerId);
+      wheelState.inertiaReleaseTimerId = null;
+    }
+  }, [isMobile, setShowInfo]);
 
   const handleCanvasFailure = useCallback(() => {
     setHasCanvasFailure(true);
@@ -286,17 +347,26 @@ export default function PortfolioPage({ pathname, navigate }) {
   );
 
   const goNext = useCallback(() => {
+    if (!isMobile) {
+      setDesktopSurface("slides");
+    }
     setLaneIndex((index) => index + 1);
     nextView();
-  }, [nextView]);
+  }, [isMobile, nextView]);
 
   const goPrev = useCallback(() => {
+    if (!isMobile) {
+      setDesktopSurface("slides");
+    }
     setLaneIndex((index) => index - 1);
     prevView();
-  }, [prevView]);
+  }, [isMobile, prevView]);
 
   const moveToSlideIndex = useCallback(
     (targetIndex) => {
+      if (!isMobile) {
+        setDesktopSurface("slides");
+      }
       const normalizedIndex = mod(targetIndex, totalSlides);
       goToView(normalizedIndex);
       setLaneIndex((currentLaneIndex) => {
@@ -305,7 +375,7 @@ export default function PortfolioPage({ pathname, navigate }) {
         return currentLaneIndex + delta;
       });
     },
-    [goToView, totalSlides]
+    [goToView, isMobile, totalSlides]
   );
 
   const handleReturnToMobileOverview = useCallback(() => {
@@ -395,18 +465,59 @@ export default function PortfolioPage({ pathname, navigate }) {
 
   useEffect(() => {
     if (isMobile && !wasMobileRef.current) {
-      setMobileSurface(getMobileSurfaceFromQuery(true));
+      setMobileSurface(desktopSurface === "overview" ? "overview" : "slides");
       setShowInfo(false);
       setMobileInteractionSlideIndex(null);
       setMobileLaunchingSlideIndex(null);
       slideOffsetRef.current = 0;
     } else if (!isMobile && wasMobileRef.current) {
-      setMobileSurface("slides");
       setMobileLaunchingSlideIndex(null);
+      setDesktopSurface(mobileSurface === "overview" ? "overview" : "slides");
     }
 
     wasMobileRef.current = isMobile;
-  }, [isMobile, setShowInfo]);
+  }, [desktopSurface, isMobile, mobileSurface, setShowInfo]);
+
+  useEffect(() => {
+    if (isMobile) {
+      setDesktopPanelRenderedSurface(desktopSurface);
+      setDesktopPanelPhase("is-entered");
+      if (desktopPanelSwapTimerRef.current !== null) {
+        window.clearTimeout(desktopPanelSwapTimerRef.current);
+        desktopPanelSwapTimerRef.current = null;
+      }
+      if (desktopPanelEnterRafRef.current !== null) {
+        window.cancelAnimationFrame(desktopPanelEnterRafRef.current);
+        desktopPanelEnterRafRef.current = null;
+      }
+      return;
+    }
+
+    if (desktopPanelRenderedSurface === desktopSurface) {
+      return;
+    }
+
+    setDesktopPanelPhase("is-leaving");
+
+    if (desktopPanelSwapTimerRef.current !== null) {
+      window.clearTimeout(desktopPanelSwapTimerRef.current);
+      desktopPanelSwapTimerRef.current = null;
+    }
+    if (desktopPanelEnterRafRef.current !== null) {
+      window.cancelAnimationFrame(desktopPanelEnterRafRef.current);
+      desktopPanelEnterRafRef.current = null;
+    }
+
+    desktopPanelSwapTimerRef.current = window.setTimeout(() => {
+      setDesktopPanelRenderedSurface(desktopSurface);
+      setDesktopPanelPhase("is-entering");
+      desktopPanelEnterRafRef.current = window.requestAnimationFrame(() => {
+        setDesktopPanelPhase("is-entered");
+        desktopPanelEnterRafRef.current = null;
+      });
+      desktopPanelSwapTimerRef.current = null;
+    }, DESKTOP_PANEL_SWAP_EXIT_MS);
+  }, [desktopPanelRenderedSurface, desktopSurface, isMobile]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -419,25 +530,41 @@ export default function PortfolioPage({ pathname, navigate }) {
 
     const searchParams = new URLSearchParams(window.location.search);
     const currentMobileView = searchParams.get(MOBILE_VIEW_QUERY_KEY);
+    const currentDesktopView = searchParams.get(DESKTOP_VIEW_QUERY_KEY);
+    let didChange = false;
 
-    if (!isMobile) {
-      if (currentMobileView == null) {
-        return;
-      }
-
-      searchParams.delete(MOBILE_VIEW_QUERY_KEY);
-    } else {
+    if (isMobile) {
       const nextMobileView = mobileSurface === "overview" ? "home" : "slides";
-      if (currentMobileView === nextMobileView) {
-        return;
+      if (currentMobileView !== nextMobileView) {
+        searchParams.set(MOBILE_VIEW_QUERY_KEY, nextMobileView);
+        didChange = true;
       }
-      searchParams.set(MOBILE_VIEW_QUERY_KEY, nextMobileView);
+
+      if (currentDesktopView !== null) {
+        searchParams.delete(DESKTOP_VIEW_QUERY_KEY);
+        didChange = true;
+      }
+    } else {
+      const nextDesktopView = desktopSurface === "overview" ? "overview" : "slides";
+      if (currentDesktopView !== nextDesktopView) {
+        searchParams.set(DESKTOP_VIEW_QUERY_KEY, nextDesktopView);
+        didChange = true;
+      }
+
+      if (currentMobileView !== null) {
+        searchParams.delete(MOBILE_VIEW_QUERY_KEY);
+        didChange = true;
+      }
+    }
+
+    if (!didChange) {
+      return;
     }
 
     const nextSearch = searchParams.toString();
     const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}${window.location.hash}`;
     window.history.replaceState(window.history.state, "", nextUrl);
-  }, [isMobile, mobileSurface]);
+  }, [desktopSurface, isMobile, mobileSurface]);
 
   useEffect(() => {
     if (!isMobile && mobileInteractionSlideIndex !== null) {
@@ -453,6 +580,14 @@ export default function PortfolioPage({ pathname, navigate }) {
     if (mobileLaunchTimerRef.current !== null) {
       window.clearTimeout(mobileLaunchTimerRef.current);
       mobileLaunchTimerRef.current = null;
+    }
+    if (desktopPanelSwapTimerRef.current !== null) {
+      window.clearTimeout(desktopPanelSwapTimerRef.current);
+      desktopPanelSwapTimerRef.current = null;
+    }
+    if (desktopPanelEnterRafRef.current !== null) {
+      window.cancelAnimationFrame(desktopPanelEnterRafRef.current);
+      desktopPanelEnterRafRef.current = null;
     }
     if (desktopWheelRef.current.resetTimerId !== null) {
       window.clearTimeout(desktopWheelRef.current.resetTimerId);
@@ -724,48 +859,67 @@ export default function PortfolioPage({ pathname, navigate }) {
     }
   }, []);
 
-  const leftPanelStyle = isMobile
-    ? undefined
-    : {
+  const leftPanelStyle = !isMobile && isDesktopSlides
+    ? {
         width: `${desktopLeftPanelWidthPercent}%`,
         flex: `0 0 ${desktopLeftPanelWidthPercent}%`,
-      };
+        marginRight: 0,
+      }
+    : undefined;
+
+  const sceneLayerHidden = isMobile ? isMobileOverview : isDesktopOverview;
 
   return (
-    <div className="main">
+    <div className={`main ${isDesktopOverview ? "desktop-overview-active" : ""}`.trim()}>
       <div className="landscape-warning">
         <p>Please rotate your device to portrait mode</p>
       </div>
       <Leva hidden={!showLeva} theme={LEVA_THEME} />
+      {!isMobile ? (
+        <header className="portfolio-topbar">
+          <SiteTopNav pathname={pathname} navigate={navigate} className="portfolio-nav" />
+          <SocialThemeRow className="portfolio-social" />
+        </header>
+      ) : null}
 
-      <aside className="panel-left" style={leftPanelStyle}>
+      <aside
+        className={`panel-left ${
+          isDesktopOverview ? "desktop-overview-panel" : !isMobile ? "desktop-slides-panel" : ""
+        }`.trim()}
+        style={leftPanelStyle}
+      >
         {!isMobile ? (
           <>
-            <SiteTopNav
-              pathname={pathname}
-              navigate={navigate}
-              className="site-top-nav-inline"
-            />
-            <Header
-              onBack={() => navigate("/")}
-              showBack={false}
-            />
-            <DesktopExperienceCards
-              activeIndex={viewIndex}
-              onSelectSlide={(index) => {
-                moveToSlideIndex(index);
-                setShowInfo(false);
-              }}
-            />
-            <div className="desktop-view-info">
-              <ViewInfo viewIndex={viewIndex} />
-            </div>
-            <Actions />
+            <section className="desktop-floating-window desktop-primary-window">
+              <div className={`desktop-panel-content ${desktopPanelPhase}`.trim()}>
+                {desktopPanelRenderedSurface === "overview" ? (
+                  <DesktopProfileWindow />
+                ) : (
+                  <div className="desktop-view-info desktop-slide-info-window-inner">
+                    <ViewInfo viewIndex={viewIndex} />
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="desktop-floating-window desktop-experience-window">
+              <DesktopExperienceCards
+                activeIndex={isDesktopSlides ? viewIndex : -1}
+                onSelectSlide={(index, isActive) => {
+                  if (isDesktopSlides && isActive) {
+                    clearDesktopSlideSelection();
+                    return;
+                  }
+                  moveToSlideIndex(index);
+                  setShowInfo(false);
+                }}
+              />
+            </section>
           </>
         ) : null}
       </aside>
 
-      <main className="panel-right">
+      <main className={`panel-right ${isDesktopOverview ? "is-collapsed" : ""}`.trim()}>
         <div
           ref={canvasContainerRef}
           className={`canvas-container ${isMobileOverview ? "mobile-overview-active" : "mobile-slides-active"} ${
@@ -780,6 +934,8 @@ export default function PortfolioPage({ pathname, navigate }) {
         >
           {isMobile ? (
             <MobilePortfolioOverview
+              pathname={pathname}
+              navigate={navigate}
               projects={projects}
               isActive={isMobileOverview}
               launchingSlideIndex={mobileLaunchingSlideIndex}
@@ -787,7 +943,7 @@ export default function PortfolioPage({ pathname, navigate }) {
             />
           ) : null}
 
-          <div className={`mobile-scene-layer ${isMobileOverview ? "is-hidden" : "is-active"}`}>
+          <div className={`mobile-scene-layer ${sceneLayerHidden ? "is-hidden" : "is-active"}`}>
             {isMobile && isMobileSlideMode ? (
               <MobileInfoPanel
                 viewIndex={viewIndex}
@@ -798,15 +954,21 @@ export default function PortfolioPage({ pathname, navigate }) {
                 onClose={() => setShowInfo(false)}
               />
             ) : null}
-            {isMobileSlideMode ? (
+            {(isMobile ? isMobileSlideMode : isDesktopSlides) ? (
               <SlideTitlePanel
                 title={projects[viewIndex]?.title ?? ""}
                 className={isMobile ? "mobile-only" : "desktop-only"}
                 onClick={isMobile ? () => setShowInfo(true) : undefined}
                 disabled={showInfo}
-                onLeftButtonClick={isMobile && !showInfo ? handleReturnToMobileOverview : undefined}
+                onLeftButtonClick={
+                  isMobile && !showInfo
+                    ? handleReturnToMobileOverview
+                    : !isMobile
+                    ? clearDesktopSlideSelection
+                    : undefined
+                }
                 leftButtonLabel="×"
-                leftButtonAriaLabel="Back to profile overview"
+                leftButtonAriaLabel={isMobile ? "Back to profile overview" : "Unselect slide"}
               />
             ) : null}
             {isMobile && isMobileSlideMode ? (

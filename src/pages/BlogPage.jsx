@@ -1,13 +1,28 @@
+import { useEffect, useState } from "react";
 import MarkdownRenderer from "../blog/MarkdownRenderer";
 import { formatPostDate, getPostBySlug, getPosts } from "../blog/posts";
 import AppLink from "../components/AppLink";
 import SiteTopNav from "../components/SiteTopNav";
 import SocialThemeRow from "../components/SocialThemeRow";
 
+const MOBILE_BREAKPOINT = 768;
+
 function BlogTopBar({ pathname, navigate }) {
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= MOBILE_BREAKPOINT : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileViewport(window.innerWidth <= MOBILE_BREAKPOINT);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <header className="blog-topbar">
-      <SiteTopNav pathname={pathname} navigate={navigate} />
+      <SiteTopNav pathname={pathname} navigate={navigate} showHome={!isMobileViewport} />
       <SocialThemeRow />
     </header>
   );
