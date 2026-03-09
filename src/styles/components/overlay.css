@@ -137,6 +137,15 @@
   transform: translateY(12px);
 }
 
+.canvas-container.mobile-interaction-active .mobile-info-peek {
+  animation: none;
+  transform: translateY(68px);
+}
+
+.canvas-container.mobile-interaction-active .mobile-info-peek.is-open {
+  transform: translateY(80px);
+}
+
 .mobile-info-peek:active {
   transform: translateY(1px);
   filter: brightness(1.07);

@@ -613,7 +613,9 @@ export default function PortfolioPage({ pathname, navigate }) {
       <main className="panel-right">
         <div
           ref={canvasContainerRef}
-          className={`canvas-container ${isMobileOverview ? "mobile-overview-active" : "mobile-slides-active"}`}
+          className={`canvas-container ${isMobileOverview ? "mobile-overview-active" : "mobile-slides-active"} ${
+            isInteractionEnabledForCurrentSlide ? "mobile-interaction-active" : ""
+          }`}
           onClick={handleCanvasClick}
           onWheel={!isMobile ? handleCanvasWheel : undefined}
             onPointerDown={isMobileSwipeEnabled ? handleCanvasPointerDown : undefined}

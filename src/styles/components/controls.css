@@ -70,7 +70,7 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   pointer-events: auto;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mobile-interaction-toggle.is-active {
@@ -80,6 +80,14 @@
 
 .mobile-interaction-toggle:active {
   transform: none;
+}
+
+.canvas-container.mobile-interaction-active .mobile-interaction-toggle {
+  transform: translateY(68px);
+}
+
+.canvas-container.mobile-interaction-active .mobile-interaction-toggle:active {
+  transform: translateY(69px);
 }
 
 .slide-progress-dots {
