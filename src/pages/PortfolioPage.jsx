@@ -67,6 +67,27 @@ function getMobileSurfaceFromQuery(isMobileViewport) {
   return searchParams.has(SLIDE_QUERY_KEY) ? "slides" : "overview";
 }
 
+function isIOSWebKit() {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  const userAgent = navigator.userAgent || "";
+  const platform = navigator.platform || "";
+  const maxTouchPoints = Number(navigator.maxTouchPoints || 0);
+
+  const isIOSDevice = /iPad|iPhone|iPod/.test(userAgent);
+  const isIPadDesktopMode = platform === "MacIntel" && maxTouchPoints > 1;
+  const isAppleMobile = isIOSDevice || isIPadDesktopMode;
+
+  if (!isAppleMobile) {
+    return false;
+  }
+
+  // Exclude non-Safari WebKit wrappers with their own GPU behavior.
+  return /WebKit/i.test(userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(userAgent);
+}
+
 function CameraController({ isMobile, laneIndex, slideOffsetRef, isDraggingRef, onMotionStateChange }) {
   const { camera } = useThree();
   const hasInitializedRef = useRef(false);
@@ -117,6 +138,7 @@ function CameraController({ isMobile, laneIndex, slideOffsetRef, isDraggingRef, 
 
 export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isLikelyIOSWebKit] = useState(() => isIOSWebKit());
   const totalSlides = Math.max(projects.length, 1);
   const [mobileSurface, setMobileSurface] = useState(() =>
     getMobileSurfaceFromQuery(window.innerWidth <= 768)
@@ -165,6 +187,11 @@ export default function PortfolioPage({ pathname, navigate }) {
   const [laneIndex, setLaneIndex] = useState(() => viewIndex);
   const isMobileOverview = isMobile && mobileSurface === "overview";
   const isMobileSlideMode = !isMobile || mobileSurface === "slides";
+  const shouldRenderCanvas = !isMobile || isMobileSlideMode;
+  const canvasDpr = isLikelyIOSWebKit ? [1, 1] : [1, 1.25];
+  const canvasGlProps = isLikelyIOSWebKit
+    ? { powerPreference: "default", antialias: false }
+    : { powerPreference: "high-performance" };
   const isPhoneSlide = viewIndex === PHONE_SLIDE_INDEX;
   const isConnectorSlide = viewIndex === CONNECTOR_SLIDE_INDEX;
   const isInteractionEnabledForCurrentSlide =
@@ -681,52 +708,56 @@ export default function PortfolioPage({ pathname, navigate }) {
                 {isInteractionEnabledForCurrentSlide ? "stop interaction" : "Switch to interactive mode"}
               </button>
             ) : null}
-            <Canvas
-              camera={{
-                position: [0, 0, isMobile ? 18 : 14],
-                fov: 45,
-              }}
-              dpr={[1, 1.25]}
-              gl={{ powerPreference: "high-performance" }}
-            >
-              <CameraController
-                isMobile={isMobile}
-                laneIndex={laneIndex}
-                slideOffsetRef={slideOffsetRef}
-                isDraggingRef={isDraggingRef}
-                onMotionStateChange={handleCameraMotionStateChange}
-              />
-              <Experience
-                diagnosticsEnabled={diagnosticsEnabled}
-                viewIndex={viewIndex}
-                layoutIndex={laneIndex}
-                totalSlides={totalSlides}
-                isMobile={isMobile}
-                mobilePhoneInteractionEnabled={isMobile && mobileInteractionSlideIndex === PHONE_SLIDE_INDEX}
-                disableConnectorInteraction={isMobile && mobileInteractionSlideIndex !== CONNECTOR_SLIDE_INDEX}
-                onPresentationDragStart={() => {
-                  isPresentationDraggingRef.current = true;
-                  gestureRef.current.active = false;
-                  gestureRef.current.pointerId = null;
-                  isDraggingRef.current = false;
-                }}
-                onPresentationDragEnd={() => {
-                  isPresentationDraggingRef.current = false;
-                }}
-              />
-            </Canvas>
+            {shouldRenderCanvas ? (
+              <>
+                <Canvas
+                  camera={{
+                    position: [0, 0, isMobile ? 18 : 14],
+                    fov: 45,
+                  }}
+                  dpr={canvasDpr}
+                  gl={canvasGlProps}
+                >
+                  <CameraController
+                    isMobile={isMobile}
+                    laneIndex={laneIndex}
+                    slideOffsetRef={slideOffsetRef}
+                    isDraggingRef={isDraggingRef}
+                    onMotionStateChange={handleCameraMotionStateChange}
+                  />
+                  <Experience
+                    diagnosticsEnabled={diagnosticsEnabled}
+                    viewIndex={viewIndex}
+                    layoutIndex={laneIndex}
+                    totalSlides={totalSlides}
+                    isMobile={isMobile}
+                    mobilePhoneInteractionEnabled={isMobile && mobileInteractionSlideIndex === PHONE_SLIDE_INDEX}
+                    disableConnectorInteraction={isMobile && mobileInteractionSlideIndex !== CONNECTOR_SLIDE_INDEX}
+                    onPresentationDragStart={() => {
+                      isPresentationDraggingRef.current = true;
+                      gestureRef.current.active = false;
+                      gestureRef.current.pointerId = null;
+                      isDraggingRef.current = false;
+                    }}
+                    onPresentationDragEnd={() => {
+                      isPresentationDraggingRef.current = false;
+                    }}
+                  />
+                </Canvas>
 
-            <div className="view-controls desktop-only">
-              <button className="btn view-btn" onClick={goPrev} aria-label="Previous view">
-                ‹
-              </button>
-              <div className="view-indicator">
-                {viewIndex + 1} / {projects.length}
-              </div>
-              <button className="btn view-btn" onClick={goNext} aria-label="Next view">
-                ›
-              </button>
-            </div>
+                <div className="view-controls desktop-only">
+                  <button className="btn view-btn" onClick={goPrev} aria-label="Previous view">
+                    ‹
+                  </button>
+                  <div className="view-indicator">
+                    {viewIndex + 1} / {projects.length}
+                  </div>
+                  <button className="btn view-btn" onClick={goNext} aria-label="Next view">
+                    ›
+                  </button>
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
       </main>

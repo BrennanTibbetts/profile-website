@@ -91,6 +91,10 @@ export default function MobilePortfolioOverview({
         >
           <span className="mobile-overview-about-title">About Me</span>
           <span className="mobile-overview-about-text">{aboutPreview}</span>
+          <div className="mobile-info-peek-hint" aria-hidden="true">
+            <span className="mobile-info-peek-hint-label">Tap to read more</span>
+            <span className="mobile-info-peek-hint-arrow">›</span>
+          </div>
         </button>
 
         <a

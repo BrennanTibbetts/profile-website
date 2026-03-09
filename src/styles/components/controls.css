@@ -136,6 +136,8 @@
   pointer-events: none;
   text-align: center;
   overflow: visible;
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
 .slide-title-panel.mobile-only {
@@ -149,6 +151,7 @@
 .slide-title-panel.has-left-button {
   position: relative;
   padding: 10px 18px;
+  z-index: 1;
 }
 
 .slide-title-left-btn,
@@ -182,12 +185,15 @@
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.04);
   transition: border-color 170ms ease, background-color 170ms ease, transform 120ms ease;
+  z-index: 2;
 }
 
 .slide-title-main-btn {
   width: 100%;
   display: block;
   min-width: 0;
+  position: relative;
+  z-index: 1;
   border-radius: 10px;
   padding: 0;
   border: 1px solid transparent;
