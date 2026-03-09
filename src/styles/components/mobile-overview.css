@@ -26,12 +26,13 @@
   position: relative;
   width: 100%;
   height: 100%;
-  --mobile-overview-about-card-max-height: 18vh;
-  --mobile-overview-about-card-max-height: 18svh;
+  min-height: 100%;
+  --mobile-overview-about-card-max-height: 22vh;
+  --mobile-overview-about-card-max-height: 22svh;
   padding: calc(env(safe-area-inset-top) + 16px) 14px calc(env(safe-area-inset-bottom) + 16px);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   overflow-y: auto;
   background:
     radial-gradient(100% 64% at 12% -6%, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0) 58%),
@@ -47,7 +48,7 @@
   box-shadow: var(--glass-surface-shadow), inset 0 1px 0 var(--glass-surface-highlight);
   -webkit-backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
   backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
-  padding: 20px 16px 16px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -55,14 +56,14 @@
 }
 
 .mobile-overview-avatar-block {
-  width: clamp(96px, 26vw, 118px);
-  height: clamp(96px, 26vw, 118px);
+  width: clamp(72px, 21vw, 96px);
+  height: clamp(72px, 21vw, 96px);
   aspect-ratio: 1 / 1;
-  border-radius: 24px;
-  padding: 9px;
+  border-radius: 20px;
+  padding: 7px;
   border: 1px solid var(--glass-surface-border);
   background: rgba(255, 255, 255, 0.04);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -70,28 +71,28 @@
   width: 100%;
   height: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 18px;
+  border-radius: 16px;
   background: linear-gradient(165deg, rgba(78, 89, 114, 0.92) 0%, rgba(52, 60, 80, 0.92) 100%);
 }
 
 .mobile-overview-name {
   margin: 0;
-  font-size: 28px;
+  font-size: 20px;
   line-height: 1.06;
   color: #ffffff;
   letter-spacing: 0.01em;
 }
 
 .mobile-overview-handle {
-  margin: 6px 0 0;
-  font-size: 14px;
+  margin: 5px 0 0;
+  font-size: 12px;
   line-height: 1.2;
   color: rgba(233, 233, 233, 0.84);
   letter-spacing: 0.02em;
 }
 
 .mobile-overview-social-row {
-  margin-top: 12px;
+  margin-top: 10px;
   width: 100%;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -101,7 +102,7 @@
 .mobile-overview-social-btn {
   appearance: none;
   -webkit-appearance: none;
-  height: 42px;
+  height: 40px;
   border-radius: 11px;
   border: 1px solid var(--glass-surface-border);
   background: rgba(255, 255, 255, 0.04);
@@ -228,11 +229,11 @@
   -webkit-backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
   backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
   text-align: left;
-  height: min(112px, var(--mobile-overview-about-card-max-height));
+  height: min(126px, var(--mobile-overview-about-card-max-height));
   max-height: var(--mobile-overview-about-card-max-height);
   min-height: 0;
   overflow: hidden;
-  padding: 10px 12px 11px;
+  padding: 11px 12px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -259,7 +260,7 @@
   color: rgba(246, 246, 246, 0.91);
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   overflow: hidden;
 }
 
@@ -267,17 +268,17 @@
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
-  min-height: 52px;
+  min-height: 44px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(8, 8, 8, 0.74);
   color: #ffffff;
   text-decoration: none;
   display: grid;
-  grid-template-columns: 22px 1fr auto;
+  grid-template-columns: 18px 1fr auto;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 9px 12px;
   box-shadow: var(--glass-surface-shadow), inset 0 1px 0 var(--glass-surface-highlight);
   -webkit-backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
   backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
@@ -289,24 +290,24 @@
 }
 
 .mobile-overview-resume-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.34);
   background: #f59e0b;
 }
 
 .mobile-overview-resume-label {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
 .mobile-overview-resume-action {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(240, 240, 240, 0.78);
 }

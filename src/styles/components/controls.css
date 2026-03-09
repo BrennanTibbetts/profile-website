@@ -121,7 +121,7 @@
   position: absolute;
   top: 18px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0);
   min-width: 220px;
   max-width: min(60vw, 560px);
   padding: 10px 18px;
@@ -137,7 +137,6 @@
   text-align: center;
   overflow: visible;
   isolation: isolate;
-  transform: translateZ(0);
 }
 
 .slide-title-panel.mobile-only {

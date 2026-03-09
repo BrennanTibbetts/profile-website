@@ -11,6 +11,7 @@ import MobilePortfolioOverview from "../components/MobilePortfolioOverview";
 import SiteTopNav from "../components/SiteTopNav";
 import SlideTitlePanel from "../components/SlideTitlePanel";
 import SlideDotsIndicator from "../components/SlideDotsIndicator";
+import DesktopExperienceCards from "../components/DesktopExperienceCards";
 import { projects } from "../projects";
 import { useViewState } from "../hooks/useViewState";
 import { useDiagnosticsEnabled } from "../hooks/useDiagnosticsEnabled";
@@ -688,6 +689,13 @@ export default function PortfolioPage({ pathname, navigate }) {
             <Header
               onBack={() => navigate("/")}
               showBack={false}
+            />
+            <DesktopExperienceCards
+              activeIndex={viewIndex}
+              onSelectSlide={(index) => {
+                moveToSlideIndex(index);
+                setShowInfo(false);
+              }}
             />
             <div className="desktop-view-info">
               <ViewInfo viewIndex={viewIndex} />

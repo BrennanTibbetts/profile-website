@@ -13,6 +13,7 @@
 @import './components/controls.css';
 @import './components/canvas.css';
 @import './components/mobile-overview.css';
+@import './components/desktop-experience-cards.css';
 @import './pages/site.css';
 
 /* Responsive styles */
