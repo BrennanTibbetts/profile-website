@@ -8,21 +8,63 @@ const AWS_MODEL_GLB = "/assets/models/aws/aws.glb";
 const CONNECTOR_MODEL_GLB = "/assets/models/connector/c-transformed.glb";
 const ENV_PRESET = "city";
 
-let hasPreloadedPortfolioAssets = false;
+let hasScheduledPortfolioAssets = false;
+let hasPreloadedPhoneAssets = false;
+let hasPreloadedAwsAssets = false;
+let hasPreloadedWeb3Assets = false;
+const warmedAssetUrls = new Set();
+
+function warmAssetCache(url) {
+  if (typeof window === "undefined" || typeof fetch !== "function") {
+    return;
+  }
+
+  if (warmedAssetUrls.has(url)) {
+    return;
+  }
+  warmedAssetUrls.add(url);
+
+  fetch(url, {
+    method: "GET",
+    cache: "force-cache",
+    credentials: "same-origin",
+  }).catch(() => {
+    // Best-effort warmup only.
+  });
+}
 
 function runPhonePreload() {
+  if (hasPreloadedPhoneAssets) {
+    return;
+  }
+  hasPreloadedPhoneAssets = true;
+
   useFBX.preload(PHONE_MODEL_FBX);
+  warmAssetCache(PHONE_MODEL_FBX);
   for (const texturePath of PHONE_TEXTURES) {
     useTexture.preload(texturePath);
+    warmAssetCache(texturePath);
   }
 }
 
 function runAwsPreload() {
+  if (hasPreloadedAwsAssets) {
+    return;
+  }
+  hasPreloadedAwsAssets = true;
+
   useGLTF.preload(AWS_MODEL_GLB);
+  warmAssetCache(AWS_MODEL_GLB);
 }
 
 function runWeb3Preload() {
+  if (hasPreloadedWeb3Assets) {
+    return;
+  }
+  hasPreloadedWeb3Assets = true;
+
   useGLTF.preload(CONNECTOR_MODEL_GLB);
+  warmAssetCache(CONNECTOR_MODEL_GLB);
   useEnvironment.preload({ preset: ENV_PRESET });
 }
 
@@ -40,11 +82,19 @@ function scheduleBackgroundTask(task, delayMs = 160) {
   window.setTimeout(task, delayMs);
 }
 
-export function preloadPortfolioAssets() {
-  if (hasPreloadedPortfolioAssets) {
+export function preloadPortfolioAssets({ mode = "background" } = {}) {
+  if (mode === "eager") {
+    // Always push everything when we have a strong signal that portfolio is likely.
+    runPhonePreload();
+    runAwsPreload();
+    runWeb3Preload();
     return;
   }
-  hasPreloadedPortfolioAssets = true;
+
+  if (hasScheduledPortfolioAssets) {
+    return;
+  }
+  hasScheduledPortfolioAssets = true;
 
   // Priority order: phone, then AWS, then web/3D.
   runPhonePreload();

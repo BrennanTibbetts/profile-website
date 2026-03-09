@@ -16,6 +16,7 @@ import { projects } from "../projects";
 import { useViewState } from "../hooks/useViewState";
 import { useDiagnosticsEnabled } from "../hooks/useDiagnosticsEnabled";
 import { DESKTOP_SLIDE_SPACING, MOBILE_SLIDE_SPACING } from "../constants/slideLayout";
+import { preloadPortfolioAssets } from "../utils/preloadPortfolioAssets";
 
 const LEVA_THEME = {
   sizes: {
@@ -32,6 +33,7 @@ const DESKTOP_SCROLL_COMMIT_THRESHOLD = 44;
 const DESKTOP_SCROLL_ACCUM_RESET_MS = 170;
 const DESKTOP_SCROLL_INERTIA_RELEASE_MS = 150;
 const PHONE_SLIDE_INDEX = 0;
+const AWS_SLIDE_INDEX = 1;
 const CONNECTOR_SLIDE_INDEX = 2;
 const SLIDE_QUERY_KEY = "slide";
 const MOBILE_VIEW_QUERY_KEY = "mobileView";
@@ -159,6 +161,14 @@ export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isLikelyIOSWebKit] = useState(() => isIOSWebKit());
   const [hasCanvasFailure, setHasCanvasFailure] = useState(() => !canCreateWebGLContext());
+  const [hasActivatedMobileCanvas, setHasActivatedMobileCanvas] = useState(
+    () => window.innerWidth > 768
+  );
+  const [slideAssetReadyMap, setSlideAssetReadyMap] = useState({
+    [PHONE_SLIDE_INDEX]: false,
+    [AWS_SLIDE_INDEX]: false,
+    [CONNECTOR_SLIDE_INDEX]: false,
+  });
   const totalSlides = Math.max(projects.length, 1);
   const [mobileSurface, setMobileSurface] = useState(() =>
     getMobileSurfaceFromQuery(window.innerWidth <= 768)
@@ -208,7 +218,7 @@ export default function PortfolioPage({ pathname, navigate }) {
   const [laneIndex, setLaneIndex] = useState(() => viewIndex);
   const isMobileOverview = isMobile && mobileSurface === "overview";
   const isMobileSlideMode = !isMobile || mobileSurface === "slides";
-  const shouldRenderCanvas = (!isMobile || isMobileSlideMode) && !hasCanvasFailure;
+  const shouldRenderCanvas = (!isMobile || hasActivatedMobileCanvas) && !hasCanvasFailure;
   const canvasDpr = isLikelyIOSWebKit ? [1, 1] : [1, 1.25];
   const canvasGlProps = isLikelyIOSWebKit
     ? { powerPreference: "default", antialias: false }
@@ -222,8 +232,22 @@ export default function PortfolioPage({ pathname, navigate }) {
     mobileInteractionSlideIndex === viewIndex;
   const isMobileSwipeEnabled =
     SLIDE_SWIPE_ENABLED && isMobile && isMobileSlideMode && !isInteractionEnabledForCurrentSlide;
+  const isCurrentSlideAssetReady = slideAssetReadyMap[viewIndex] ?? true;
+  const shouldShowAssetLoadingIndicator = shouldRenderCanvas && !isCurrentSlideAssetReady;
 
   const desktopLeftPanelWidthPercent = Math.max(26, Math.min(72, layoutControls.desktopLeftPanelWidthPercent));
+
+  const markSlideAssetReady = useCallback((slideIndex) => {
+    setSlideAssetReadyMap((previous) => {
+      if (previous[slideIndex]) {
+        return previous;
+      }
+      return {
+        ...previous,
+        [slideIndex]: true,
+      };
+    });
+  }, []);
 
   const handleCanvasFailure = useCallback(() => {
     setHasCanvasFailure(true);
@@ -326,6 +350,42 @@ export default function PortfolioPage({ pathname, navigate }) {
     },
     [isMobile, mobileSurface, moveToSlideIndex, setShowInfo]
   );
+
+  useEffect(() => {
+    preloadPortfolioAssets({ mode: "eager" });
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setHasActivatedMobileCanvas(true);
+      return;
+    }
+
+    if (isMobileSlideMode) {
+      setHasActivatedMobileCanvas(true);
+    }
+  }, [isMobile, isMobileSlideMode]);
+
+  useEffect(() => {
+    if (shouldRenderCanvas) {
+      return;
+    }
+
+    if (canvasContextCleanupRef.current) {
+      canvasContextCleanupRef.current();
+      canvasContextCleanupRef.current = null;
+    }
+  }, [shouldRenderCanvas]);
+
+  useEffect(() => {
+    if (!isMobile || mobileSurface !== "slides" || !hasCanvasFailure) {
+      return;
+    }
+
+    if (canCreateWebGLContext()) {
+      setHasCanvasFailure(false);
+    }
+  }, [isMobile, mobileSurface, hasCanvasFailure]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -757,6 +817,12 @@ export default function PortfolioPage({ pathname, navigate }) {
                 className={showInfo || isInteractionEnabledForCurrentSlide ? "is-hidden" : ""}
               />
             ) : null}
+            {shouldShowAssetLoadingIndicator ? (
+              <div className="scene-asset-loading-indicator" role="status" aria-live="polite">
+                <span className="scene-asset-loading-dot" aria-hidden="true" />
+                <span>Loading 3D model...</span>
+              </div>
+            ) : null}
             {isMobile &&
             isMobileSlideMode &&
             shouldRenderCanvas &&
@@ -808,6 +874,7 @@ export default function PortfolioPage({ pathname, navigate }) {
                     isMobile={isMobile}
                     mobilePhoneInteractionEnabled={isMobile && mobileInteractionSlideIndex === PHONE_SLIDE_INDEX}
                     disableConnectorInteraction={isMobile && mobileInteractionSlideIndex !== CONNECTOR_SLIDE_INDEX}
+                    onSlideAssetReady={markSlideAssetReady}
                     onPresentationDragStart={() => {
                       isPresentationDraggingRef.current = true;
                       gestureRef.current.active = false;

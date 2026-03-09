@@ -44,6 +44,51 @@
   pointer-events: auto;
 }
 
+.scene-asset-loading-indicator {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(8, 8, 8, 0.74);
+  box-shadow: var(--glass-surface-shadow), inset 0 1px 0 var(--glass-surface-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
+  backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
+  color: #f2f2f2;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.scene-asset-loading-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #f6f6f6;
+  opacity: 0.35;
+  animation: scene-asset-loading-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes scene-asset-loading-pulse {
+  0%,
+  100% {
+    transform: scale(0.82);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
 .scene-diagnostics-layer {
   position: relative;
   width: 100%;

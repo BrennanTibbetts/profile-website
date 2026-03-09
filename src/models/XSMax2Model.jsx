@@ -1,5 +1,5 @@
 import { useFBX, useTexture } from "@react-three/drei";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 const XS_MAX_2_MODEL_PATH = "/assets/models/XS%20Max%202/iPhone%20XS%20Max.fbx";
@@ -135,10 +135,12 @@ export function XSMax2Model({
   edgeMaterialPreset = "matchTrim",
   glassMaterialPreset = "matchTrim",
   sideRailMaterialPreset = "matchTrim",
+  onReady,
   ...props
 }) {
   const scene = useFBX(XS_MAX_2_MODEL_PATH);
   const textures = useTexture(XS_MAX_2_TEXTURE_PATHS);
+  const hasNotifiedReadyRef = useRef(false);
 
   const modelScene = useMemo(() => {
     const clone = scene.clone(true);
@@ -248,6 +250,14 @@ export function XSMax2Model({
     glassMaterialPreset,
     sideRailMaterialPreset,
   ]);
+
+  useEffect(() => {
+    if (!onReady || hasNotifiedReadyRef.current) {
+      return;
+    }
+    hasNotifiedReadyRef.current = true;
+    onReady();
+  }, [onReady, modelScene, textures]);
 
   return (
     <group {...props} dispose={null}>

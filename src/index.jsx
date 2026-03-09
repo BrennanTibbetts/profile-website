@@ -88,21 +88,7 @@ function App() {
   const route = useMemo(() => parseRoute(pathname), [pathname]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return undefined;
-    }
-
-    const startPreload = () => {
-      preloadPortfolioAssets();
-    };
-
-    if ("requestIdleCallback" in window) {
-      const idleId = window.requestIdleCallback(startPreload, { timeout: 1200 });
-      return () => window.cancelIdleCallback(idleId);
-    }
-
-    const timeoutId = window.setTimeout(startPreload, 120);
-    return () => window.clearTimeout(timeoutId);
+    preloadPortfolioAssets({ mode: "eager" });
   }, []);
 
   useEffect(() => {

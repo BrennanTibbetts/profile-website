@@ -17,6 +17,7 @@ const CENTER_PULL_STRENGTH = 0.2;
 const CENTER_PULL_MAX_IMPULSE = 0.35;
 const CONNECTOR_BOUNDS_HALF_EXTENT = 4.9;
 const CONNECTOR_BOUNDS_WALL_THICKNESS = 0.45;
+const CONNECTOR_MODEL_GLB = "/assets/models/connector/c-transformed.glb";
 
 const shuffle = (accent = 0) => [
   { color: "#444", roughness: 0.1 },
@@ -204,7 +205,27 @@ function Connector({
   );
 }
 
-export function ConnectorClusterModel({ isActive = true, interactionEnabled = true, anchorSourceRef }) {
+function ConnectorAssetProbe({ onReady }) {
+  const hasNotifiedReadyRef = useRef(false);
+  useGLTF(CONNECTOR_MODEL_GLB);
+
+  useEffect(() => {
+    if (!onReady || hasNotifiedReadyRef.current) {
+      return;
+    }
+    hasNotifiedReadyRef.current = true;
+    onReady();
+  }, [onReady]);
+
+  return null;
+}
+
+export function ConnectorClusterModel({
+  isActive = true,
+  interactionEnabled = true,
+  anchorSourceRef,
+  onAssetReady,
+}) {
   const bodyMetaRef = useRef([]);
 
   const anchorPosRef = useRef(new THREE.Vector3());
@@ -343,6 +364,7 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
   return (
     <group>
       <Suspense fallback={null}>
+        <ConnectorAssetProbe onReady={onAssetReady} />
         <Physics gravity={[0, 0, 0]} timeStep="vary" interpolate={false}>
           <AnchorBoundsCollider anchorSourceRef={anchorSourceRef} />
           <PointerCollider enabled={isActive && interactionEnabled} anchorSourceRef={anchorSourceRef} />
@@ -365,7 +387,7 @@ export function ConnectorClusterModel({ isActive = true, interactionEnabled = tr
 
 function Model({ children, color = "white", roughness = 0 }) {
   const meshRef = useRef(null);
-  const { nodes, materials } = useGLTF("/assets/models/connector/c-transformed.glb");
+  const { nodes, materials } = useGLTF(CONNECTOR_MODEL_GLB);
 
   useFrame((_, delta) => {
     const activeMaterial = meshRef.current?.material;
@@ -388,4 +410,4 @@ function Model({ children, color = "white", roughness = 0 }) {
   );
 }
 
-useGLTF.preload("/assets/models/connector/c-transformed.glb");
+useGLTF.preload(CONNECTOR_MODEL_GLB);

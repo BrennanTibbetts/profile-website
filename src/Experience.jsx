@@ -1,5 +1,5 @@
 import { folder, useControls } from "leva";
-import { useRef } from "react";
+import { Suspense, useCallback, useRef } from "react";
 import { Environment, Float, PresentationControls } from "@react-three/drei";
 import SceneDiagnostics from "./components/SceneDiagnostics.jsx";
 import Lights, { modelLightingPresets } from "./Lights.jsx";
@@ -51,6 +51,7 @@ export default function Experience({
   disableConnectorInteraction = false,
   onPresentationDragStart,
   onPresentationDragEnd,
+  onSlideAssetReady,
 }) {
   const connectorAnchorRef = useRef(null);
 
@@ -178,6 +179,18 @@ export default function Experience({
       }
     : false;
   const shouldUsePhoneFloat = isMobile && props.phoneFloatEnabled && !mobilePhoneInteractionEnabled;
+  const notifyPhoneReady = useCallback(
+    () => onSlideAssetReady?.(PHONE_SLIDE_INDEX),
+    [onSlideAssetReady]
+  );
+  const notifyAwsReady = useCallback(
+    () => onSlideAssetReady?.(AWS_SLIDE_INDEX),
+    [onSlideAssetReady]
+  );
+  const notifyConnectorReady = useCallback(
+    () => onSlideAssetReady?.(CONNECTOR_SLIDE_INDEX),
+    [onSlideAssetReady]
+  );
 
   return (
     <>
@@ -187,14 +200,54 @@ export default function Experience({
       <Environment preset={props.environmentPreset} />
 
       <group position={getSlidePosition(PHONE_SLIDE_INDEX, layoutIndex, isMobile, 0, totalSlides)}>
-        {shouldUsePhoneFloat ? (
-          <Float
-            speed={props.phoneFloatSpeed}
-            rotationIntensity={props.phoneFloatRotationIntensity}
-            floatIntensity={props.phoneFloatFloatIntensity}
-            floatingRange={phoneFloatRange}
-          >
-            <group rotation={phoneRotation}>
+        <Suspense fallback={null}>
+          {shouldUsePhoneFloat ? (
+            <Float
+              speed={props.phoneFloatSpeed}
+              rotationIntensity={props.phoneFloatRotationIntensity}
+              floatIntensity={props.phoneFloatFloatIntensity}
+              floatingRange={phoneFloatRange}
+            >
+              <group rotation={phoneRotation}>
+                <group
+                  position={[props.phoneOffsetX, props.phoneOffsetY, props.phoneOffsetZ]}
+                  rotation={[
+                    (props.phoneRotX * Math.PI) / 180,
+                    (props.phoneRotY * Math.PI) / 180,
+                    (props.phoneRotZ * Math.PI) / 180,
+                  ]}
+                >
+                  <XSMax2Model
+                    scale={props.phoneScale}
+                    screenEmissiveIntensity={props.phoneScreenEmissive}
+                    trimMaterialPreset={props.phoneTrimMaterial}
+                    edgeMaterialPreset={props.phoneEdgeMaterial}
+                    glassMaterialPreset={props.phoneGlassMaterial}
+                    sideRailMaterialPreset={props.phoneSideRailMaterial}
+                    onReady={notifyPhoneReady}
+                  />
+                </group>
+              </group>
+            </Float>
+          ) : (
+            <PresentationControls
+              enabled={phoneControlsEnabled}
+              global={false}
+              cursor={props.phonePresentationCursor}
+              snap={phoneSnapConfig}
+              speed={props.phonePresentationSpeed}
+              zoom={props.phonePresentationZoom}
+              config={{
+                mass: props.phonePresentationMass,
+                tension: props.phonePresentationTension,
+                friction: props.phonePresentationFriction,
+              }}
+              onStart={onPresentationDragStart}
+              onEnd={onPresentationDragEnd}
+              rotation={phoneRotation}
+              polar={phonePolar}
+              azimuth={phoneAzimuth}
+            >
               <group
                 position={[props.phoneOffsetX, props.phoneOffsetY, props.phoneOffsetZ]}
                 rotation={[
@@ -210,57 +263,37 @@ export default function Experience({
                   edgeMaterialPreset={props.phoneEdgeMaterial}
                   glassMaterialPreset={props.phoneGlassMaterial}
                   sideRailMaterialPreset={props.phoneSideRailMaterial}
+                  onReady={notifyPhoneReady}
                 />
               </group>
-            </group>
-          </Float>
-        ) : (
-          <PresentationControls
-            enabled={phoneControlsEnabled}
-            global={false}
-            cursor={props.phonePresentationCursor}
-            snap={phoneSnapConfig}
-            speed={props.phonePresentationSpeed}
-            zoom={props.phonePresentationZoom}
-            config={{
-              mass: props.phonePresentationMass,
-              tension: props.phonePresentationTension,
-              friction: props.phonePresentationFriction,
-            }}
-            onStart={onPresentationDragStart}
-            onEnd={onPresentationDragEnd}
-            rotation={phoneRotation}
-            polar={phonePolar}
-            azimuth={phoneAzimuth}
-          >
-            <group
-              position={[props.phoneOffsetX, props.phoneOffsetY, props.phoneOffsetZ]}
-              rotation={[
-                (props.phoneRotX * Math.PI) / 180,
-                (props.phoneRotY * Math.PI) / 180,
-                (props.phoneRotZ * Math.PI) / 180,
-              ]}
-            >
-              <XSMax2Model
-                scale={props.phoneScale}
-                screenEmissiveIntensity={props.phoneScreenEmissive}
-                trimMaterialPreset={props.phoneTrimMaterial}
-                edgeMaterialPreset={props.phoneEdgeMaterial}
-                glassMaterialPreset={props.phoneGlassMaterial}
-                sideRailMaterialPreset={props.phoneSideRailMaterial}
-              />
-            </group>
-          </PresentationControls>
-        )}
+            </PresentationControls>
+          )}
+        </Suspense>
       </group>
       <group position={getSlidePosition(AWS_SLIDE_INDEX, layoutIndex, isMobile, -1, totalSlides)}>
-        {props.awsFloatEnabled ? (
-          <Float
-            speed={props.awsFloatSpeed}
-            rotationIntensity={props.awsFloatRotationIntensity}
-            floatIntensity={props.awsFloatFloatIntensity}
-            floatingRange={awsFloatRange}
-          >
+        <Suspense fallback={null}>
+          {props.awsFloatEnabled ? (
+            <Float
+              speed={props.awsFloatSpeed}
+              rotationIntensity={props.awsFloatRotationIntensity}
+              floatIntensity={props.awsFloatFloatIntensity}
+              floatingRange={awsFloatRange}
+            >
+              <AWSModel
+                scale={0.3}
+                logoScale={props.awsLogoScale}
+                arrowColor={props.awsArrowColor}
+                textColor={props.awsTextColor}
+                logoMetalness={props.awsLogoMetalness}
+                logoRoughness={props.awsLogoRoughness}
+                arrowEmissive={props.awsArrowEmissive}
+                arrowEmissiveIntensity={props.awsArrowEmissiveIntensity}
+                textEmissive={props.awsTextEmissive}
+                textEmissiveIntensity={props.awsTextEmissiveIntensity}
+                onReady={notifyAwsReady}
+              />
+            </Float>
+          ) : (
             <AWSModel
               scale={0.3}
               logoScale={props.awsLogoScale}
@@ -272,22 +305,10 @@ export default function Experience({
               arrowEmissiveIntensity={props.awsArrowEmissiveIntensity}
               textEmissive={props.awsTextEmissive}
               textEmissiveIntensity={props.awsTextEmissiveIntensity}
+              onReady={notifyAwsReady}
             />
-          </Float>
-        ) : (
-          <AWSModel
-            scale={0.3}
-            logoScale={props.awsLogoScale}
-            arrowColor={props.awsArrowColor}
-            textColor={props.awsTextColor}
-            logoMetalness={props.awsLogoMetalness}
-            logoRoughness={props.awsLogoRoughness}
-            arrowEmissive={props.awsArrowEmissive}
-            arrowEmissiveIntensity={props.awsArrowEmissiveIntensity}
-            textEmissive={props.awsTextEmissive}
-            textEmissiveIntensity={props.awsTextEmissiveIntensity}
-          />
-        )}
+          )}
+        </Suspense>
       </group>
       <group
         ref={connectorAnchorRef}
@@ -297,6 +318,7 @@ export default function Experience({
         isActive={viewIndex === CONNECTOR_SLIDE_INDEX}
         interactionEnabled={!disableConnectorInteraction}
         anchorSourceRef={connectorAnchorRef}
+        onAssetReady={notifyConnectorReady}
       />
     </>
   );

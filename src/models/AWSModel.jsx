@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -13,9 +13,19 @@ export function AWSModel({
   arrowEmissiveIntensity = 0.12,
   textEmissive = "#000000",
   textEmissiveIntensity = 0,
+  onReady,
   ...props
 }) {
   const { nodes: logoNodes } = useGLTF(AWS_LOGO_PATH);
+  const hasNotifiedReadyRef = useRef(false);
+
+  useEffect(() => {
+    if (!onReady || hasNotifiedReadyRef.current) {
+      return;
+    }
+    hasNotifiedReadyRef.current = true;
+    onReady();
+  }, [onReady, logoNodes]);
 
   const arrowMaterial = useMemo(
     () =>
