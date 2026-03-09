@@ -8,7 +8,13 @@
   /* Shared mobile dock geometry for info card + interaction button alignment */
   --mobile-overlay-side: 12px;
   --mobile-info-card-bottom: calc(env(safe-area-inset-bottom) + 14px);
-  --mobile-info-card-height: 172px;
+  --mobile-info-card-height: 168px;
+  --mobile-info-card-max-height: 24vh;
+  --mobile-info-card-max-height: 24svh;
+  --mobile-info-card-effective-height: min(
+    var(--mobile-info-card-height),
+    var(--mobile-info-card-max-height)
+  );
   --mobile-info-interaction-gap: 10px;
 }
 

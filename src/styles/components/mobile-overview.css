@@ -26,6 +26,8 @@
   position: relative;
   width: 100%;
   height: 100%;
+  --mobile-overview-about-card-max-height: 18vh;
+  --mobile-overview-about-card-max-height: 18svh;
   padding: calc(env(safe-area-inset-top) + 16px) 14px calc(env(safe-area-inset-bottom) + 16px);
   display: flex;
   flex-direction: column;
@@ -226,10 +228,14 @@
   -webkit-backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
   backdrop-filter: blur(var(--glass-surface-blur)) saturate(122%);
   text-align: left;
-  padding: 12px 13px 13px;
+  height: min(112px, var(--mobile-overview-about-card-max-height));
+  max-height: var(--mobile-overview-about-card-max-height);
+  min-height: 0;
+  overflow: hidden;
+  padding: 10px 12px 11px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
   cursor: pointer;
   transition: transform 150ms ease, filter 180ms ease;
 }
@@ -248,12 +254,12 @@
 }
 
 .mobile-overview-about-text {
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.34;
   color: rgba(246, 246, 246, 0.91);
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   overflow: hidden;
 }
 

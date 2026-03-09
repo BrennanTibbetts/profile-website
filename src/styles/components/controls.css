@@ -49,7 +49,7 @@
   right: var(--mobile-overlay-side);
   bottom: calc(
     var(--mobile-info-card-bottom) +
-    var(--mobile-info-card-height) +
+    var(--mobile-info-card-effective-height) +
     var(--mobile-info-interaction-gap)
   );
   transform: none;

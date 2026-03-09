@@ -88,6 +88,24 @@ function isIOSWebKit() {
   return /WebKit/i.test(userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(userAgent);
 }
 
+function canCreateWebGLContext() {
+  if (typeof document === "undefined") {
+    return true;
+  }
+
+  const testCanvas = document.createElement("canvas");
+  if (!testCanvas) {
+    return false;
+  }
+
+  const context =
+    testCanvas.getContext("webgl2", { powerPreference: "low-power" }) ||
+    testCanvas.getContext("webgl", { powerPreference: "low-power" }) ||
+    testCanvas.getContext("experimental-webgl");
+
+  return Boolean(context);
+}
+
 function CameraController({ isMobile, laneIndex, slideOffsetRef, isDraggingRef, onMotionStateChange }) {
   const { camera } = useThree();
   const hasInitializedRef = useRef(false);
@@ -139,6 +157,7 @@ function CameraController({ isMobile, laneIndex, slideOffsetRef, isDraggingRef, 
 export default function PortfolioPage({ pathname, navigate }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isLikelyIOSWebKit] = useState(() => isIOSWebKit());
+  const [hasCanvasFailure, setHasCanvasFailure] = useState(() => !canCreateWebGLContext());
   const totalSlides = Math.max(projects.length, 1);
   const [mobileSurface, setMobileSurface] = useState(() =>
     getMobileSurfaceFromQuery(window.innerWidth <= 768)
@@ -147,6 +166,7 @@ export default function PortfolioPage({ pathname, navigate }) {
   const [mobileInteractionSlideIndex, setMobileInteractionSlideIndex] = useState(null);
   const [diagnosticsEnabled] = useDiagnosticsEnabled();
   const canvasContainerRef = useRef(null);
+  const canvasContextCleanupRef = useRef(null);
   const mobileLaunchTimerRef = useRef(null);
   const wasMobileRef = useRef(window.innerWidth <= 768);
   const gestureRef = useRef({
@@ -187,7 +207,7 @@ export default function PortfolioPage({ pathname, navigate }) {
   const [laneIndex, setLaneIndex] = useState(() => viewIndex);
   const isMobileOverview = isMobile && mobileSurface === "overview";
   const isMobileSlideMode = !isMobile || mobileSurface === "slides";
-  const shouldRenderCanvas = !isMobile || isMobileSlideMode;
+  const shouldRenderCanvas = (!isMobile || isMobileSlideMode) && !hasCanvasFailure;
   const canvasDpr = isLikelyIOSWebKit ? [1, 1] : [1, 1.25];
   const canvasGlProps = isLikelyIOSWebKit
     ? { powerPreference: "default", antialias: false }
@@ -203,6 +223,42 @@ export default function PortfolioPage({ pathname, navigate }) {
     SLIDE_SWIPE_ENABLED && isMobile && isMobileSlideMode && !isInteractionEnabledForCurrentSlide;
 
   const desktopLeftPanelWidthPercent = Math.max(26, Math.min(72, layoutControls.desktopLeftPanelWidthPercent));
+
+  const handleCanvasFailure = useCallback(() => {
+    setHasCanvasFailure(true);
+    setMobileInteractionSlideIndex(null);
+    isPresentationDraggingRef.current = false;
+    gestureRef.current.active = false;
+    gestureRef.current.pointerId = null;
+    gestureRef.current.moved = false;
+    isDraggingRef.current = false;
+    slideOffsetRef.current = 0;
+  }, []);
+
+  const attachCanvasContextLossListener = useCallback(
+    (glRenderer) => {
+      if (!glRenderer?.domElement) {
+        return;
+      }
+
+      if (canvasContextCleanupRef.current) {
+        canvasContextCleanupRef.current();
+        canvasContextCleanupRef.current = null;
+      }
+
+      const handleContextLost = (event) => {
+        event.preventDefault();
+        handleCanvasFailure();
+      };
+
+      glRenderer.domElement.addEventListener("webglcontextlost", handleContextLost, { passive: false });
+
+      canvasContextCleanupRef.current = () => {
+        glRenderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
+      };
+    },
+    [handleCanvasFailure]
+  );
 
   const goNext = useCallback(() => {
     setLaneIndex((index) => index + 1);
@@ -329,6 +385,10 @@ export default function PortfolioPage({ pathname, navigate }) {
   }, [isMobile, mobileInteractionSlideIndex]);
 
   useEffect(() => () => {
+    if (canvasContextCleanupRef.current) {
+      canvasContextCleanupRef.current();
+      canvasContextCleanupRef.current = null;
+    }
     if (mobileLaunchTimerRef.current !== null) {
       window.clearTimeout(mobileLaunchTimerRef.current);
       mobileLaunchTimerRef.current = null;
@@ -689,7 +749,11 @@ export default function PortfolioPage({ pathname, navigate }) {
                 className={showInfo || isInteractionEnabledForCurrentSlide ? "is-hidden" : ""}
               />
             ) : null}
-            {isMobile && isMobileSlideMode && (isPhoneSlide || isConnectorSlide) && !showInfo ? (
+            {isMobile &&
+            isMobileSlideMode &&
+            shouldRenderCanvas &&
+            (isPhoneSlide || isConnectorSlide) &&
+            !showInfo ? (
               <button
                 type="button"
                 className={`mobile-interaction-toggle ${isInteractionEnabledForCurrentSlide ? "is-active" : ""}`}
@@ -717,6 +781,9 @@ export default function PortfolioPage({ pathname, navigate }) {
                   }}
                   dpr={canvasDpr}
                   gl={canvasGlProps}
+                  onCreated={({ gl }) => {
+                    attachCanvasContextLossListener(gl);
+                  }}
                 >
                   <CameraController
                     isMobile={isMobile}
