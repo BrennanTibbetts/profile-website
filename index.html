@@ -3,6 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <link id="favicon" rel="icon" type="image/png" href="/images/face.png" />
+    <link id="favicon-shortcut" rel="shortcut icon" type="image/png" href="/images/face.png" />
+    <script>
+      (() => {
+        const lightFavicon = "/images/face.png";
+        const darkFavicon = "/images/face-white.png";
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+        const setFavicon = (isDarkMode) => {
+          const href = isDarkMode ? darkFavicon : lightFavicon;
+          const favicon = document.getElementById("favicon");
+          const shortcut = document.getElementById("favicon-shortcut");
+
+          if (favicon) favicon.href = href;
+          if (shortcut) shortcut.href = href;
+        };
+
+        setFavicon(mediaQuery.matches);
+
+        if (typeof mediaQuery.addEventListener === "function") {
+          mediaQuery.addEventListener("change", (event) => setFavicon(event.matches));
+        } else if (typeof mediaQuery.addListener === "function") {
+          mediaQuery.addListener((event) => setFavicon(event.matches));
+        }
+      })();
+    </script>
     <title>Brennan Tibbetts</title>
   </head>
 
