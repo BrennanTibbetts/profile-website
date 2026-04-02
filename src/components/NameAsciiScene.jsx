@@ -46,7 +46,7 @@ const ASCII_RESOLUTION_MOBILE = 0.36;
 const MOBILE_BREAKPOINT = 768;
 const MOBILE_HINT_STORAGE_KEY = "homeAsciiTouchHintSeen";
 const HOME_WINDOW_DEFAULTS = {
-  widthVwDesktop: 62,
+  widthVwDesktop: 70,
   heightVhDesktop: 52,
   widthVwMobile: 92,
   heightVhMobile: 36,
