@@ -213,6 +213,10 @@ export default function PortfolioPage({ pathname, navigate }) {
   const mobileLaunchTimerRef = useRef(null);
   const desktopPanelSwapTimerRef = useRef(null);
   const desktopPanelEnterRafRef = useRef(null);
+  const desktopPrimaryWindowRef = useRef(null);
+  const desktopPrimaryHeightFromRef = useRef(null);
+  const desktopPrimaryHeightCleanupTimerRef = useRef(null);
+  const shouldAnimatePrimaryHeightRef = useRef(false);
   const wasMobileRef = useRef(window.innerWidth <= 768);
   const gestureRef = useRef({
     active: false,
@@ -482,6 +486,8 @@ export default function PortfolioPage({ pathname, navigate }) {
     if (isMobile) {
       setDesktopPanelRenderedSurface(desktopSurface);
       setDesktopPanelPhase("is-entered");
+      shouldAnimatePrimaryHeightRef.current = false;
+      desktopPrimaryHeightFromRef.current = null;
       if (desktopPanelSwapTimerRef.current !== null) {
         window.clearTimeout(desktopPanelSwapTimerRef.current);
         desktopPanelSwapTimerRef.current = null;
@@ -489,6 +495,14 @@ export default function PortfolioPage({ pathname, navigate }) {
       if (desktopPanelEnterRafRef.current !== null) {
         window.cancelAnimationFrame(desktopPanelEnterRafRef.current);
         desktopPanelEnterRafRef.current = null;
+      }
+      if (desktopPrimaryHeightCleanupTimerRef.current !== null) {
+        window.clearTimeout(desktopPrimaryHeightCleanupTimerRef.current);
+        desktopPrimaryHeightCleanupTimerRef.current = null;
+      }
+      if (desktopPrimaryWindowRef.current) {
+        desktopPrimaryWindowRef.current.style.height = "";
+        desktopPrimaryWindowRef.current.style.transition = "";
       }
       return;
     }
@@ -509,15 +523,90 @@ export default function PortfolioPage({ pathname, navigate }) {
     }
 
     desktopPanelSwapTimerRef.current = window.setTimeout(() => {
+      if (desktopSurface === "overview") {
+        const currentHeight = desktopPrimaryWindowRef.current?.getBoundingClientRect().height;
+        if (Number.isFinite(currentHeight) && currentHeight > 0) {
+          desktopPrimaryHeightFromRef.current = currentHeight;
+          shouldAnimatePrimaryHeightRef.current = true;
+        } else {
+          desktopPrimaryHeightFromRef.current = null;
+          shouldAnimatePrimaryHeightRef.current = false;
+        }
+      } else {
+        desktopPrimaryHeightFromRef.current = null;
+        shouldAnimatePrimaryHeightRef.current = false;
+      }
+
       setDesktopPanelRenderedSurface(desktopSurface);
-      setDesktopPanelPhase("is-entering");
-      desktopPanelEnterRafRef.current = window.requestAnimationFrame(() => {
-        setDesktopPanelPhase("is-entered");
-        desktopPanelEnterRafRef.current = null;
-      });
+      if (desktopSurface === "overview") {
+        setDesktopPanelPhase("is-entered-no-motion");
+        desktopPanelEnterRafRef.current = window.requestAnimationFrame(() => {
+          setDesktopPanelPhase("is-entered");
+          desktopPanelEnterRafRef.current = null;
+        });
+      } else {
+        setDesktopPanelPhase("is-entering");
+        desktopPanelEnterRafRef.current = window.requestAnimationFrame(() => {
+          setDesktopPanelPhase("is-entered");
+          desktopPanelEnterRafRef.current = null;
+        });
+      }
       desktopPanelSwapTimerRef.current = null;
     }, DESKTOP_PANEL_SWAP_EXIT_MS);
   }, [desktopPanelRenderedSurface, desktopSurface, isMobile]);
+
+  useEffect(() => {
+    if (isMobile || !shouldAnimatePrimaryHeightRef.current) {
+      return;
+    }
+
+    const primaryWindow = desktopPrimaryWindowRef.current;
+    const fromHeight = desktopPrimaryHeightFromRef.current;
+
+    shouldAnimatePrimaryHeightRef.current = false;
+    desktopPrimaryHeightFromRef.current = null;
+
+    if (!primaryWindow || !Number.isFinite(fromHeight)) {
+      return;
+    }
+
+    const toHeight = primaryWindow.getBoundingClientRect().height;
+    if (!Number.isFinite(toHeight) || Math.abs(toHeight - fromHeight) < 1) {
+      return;
+    }
+
+    primaryWindow.style.height = `${fromHeight}px`;
+    void primaryWindow.offsetHeight;
+    primaryWindow.style.transition = "height 260ms cubic-bezier(0.22, 1, 0.36, 1)";
+    primaryWindow.style.height = `${toHeight}px`;
+
+    const clearInlineAnimationStyles = () => {
+      primaryWindow.style.height = "";
+      primaryWindow.style.transition = "";
+    };
+
+    const handleHeightTransitionEnd = (event) => {
+      if (event.propertyName !== "height") {
+        return;
+      }
+      primaryWindow.removeEventListener("transitionend", handleHeightTransitionEnd);
+      clearInlineAnimationStyles();
+      if (desktopPrimaryHeightCleanupTimerRef.current !== null) {
+        window.clearTimeout(desktopPrimaryHeightCleanupTimerRef.current);
+        desktopPrimaryHeightCleanupTimerRef.current = null;
+      }
+    };
+
+    primaryWindow.addEventListener("transitionend", handleHeightTransitionEnd);
+    if (desktopPrimaryHeightCleanupTimerRef.current !== null) {
+      window.clearTimeout(desktopPrimaryHeightCleanupTimerRef.current);
+    }
+    desktopPrimaryHeightCleanupTimerRef.current = window.setTimeout(() => {
+      primaryWindow.removeEventListener("transitionend", handleHeightTransitionEnd);
+      clearInlineAnimationStyles();
+      desktopPrimaryHeightCleanupTimerRef.current = null;
+    }, 380);
+  }, [desktopPanelRenderedSurface, isMobile]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -588,6 +677,10 @@ export default function PortfolioPage({ pathname, navigate }) {
     if (desktopPanelEnterRafRef.current !== null) {
       window.cancelAnimationFrame(desktopPanelEnterRafRef.current);
       desktopPanelEnterRafRef.current = null;
+    }
+    if (desktopPrimaryHeightCleanupTimerRef.current !== null) {
+      window.clearTimeout(desktopPrimaryHeightCleanupTimerRef.current);
+      desktopPrimaryHeightCleanupTimerRef.current = null;
     }
     if (desktopWheelRef.current.resetTimerId !== null) {
       window.clearTimeout(desktopWheelRef.current.resetTimerId);
@@ -890,7 +983,12 @@ export default function PortfolioPage({ pathname, navigate }) {
       >
         {!isMobile ? (
           <>
-            <section className="desktop-floating-window desktop-primary-window">
+            <section
+              ref={desktopPrimaryWindowRef}
+              className={`desktop-floating-window desktop-primary-window ${
+                desktopPanelRenderedSurface === "overview" ? "is-overview-surface" : ""
+              }`.trim()}
+            >
               <div className={`desktop-panel-content ${desktopPanelPhase}`.trim()}>
                 {desktopPanelRenderedSurface === "overview" ? (
                   <DesktopProfileWindow />

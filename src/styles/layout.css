@@ -59,11 +59,18 @@
   height: calc(100dvh - 98px);
   max-height: calc(100dvh - 98px);
   overflow: hidden;
+  justify-content: center;
   background: transparent;
   border: 0;
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+@media (max-height: 860px) {
+  .panel-left.desktop-overview-panel {
+    justify-content: flex-start;
+  }
 }
 
 .panel-left.desktop-slides-panel {
@@ -117,6 +124,13 @@
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
+}
+
+.desktop-panel-content.is-entered-no-motion {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition: none;
 }
 
 .desktop-floating-window {

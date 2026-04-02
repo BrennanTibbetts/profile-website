@@ -188,7 +188,7 @@
 }
 
 .desktop-profile-resume-btn {
-  margin-top: auto;
+  margin-top: 16px;
 }
 
 .desktop-overview-resume-icon {
@@ -230,6 +230,18 @@
 .desktop-slide-info-window-inner .view-info {
   padding-top: 0;
   height: 100%;
+}
+
+/* In desktop overview mode, let the profile/about window hug its content. */
+.panel-left.desktop-overview-panel .desktop-primary-window.is-overview-surface {
+  flex: 0 0 auto;
+  padding-top: 22px;
+  padding-bottom: 20px;
+}
+
+.panel-left.desktop-overview-panel .desktop-primary-window.is-overview-surface .desktop-panel-content,
+.panel-left.desktop-overview-panel .desktop-primary-window.is-overview-surface .desktop-profile-window {
+  height: auto;
 }
 
 @media (hover: hover) and (pointer: fine) {
