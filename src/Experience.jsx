@@ -6,12 +6,14 @@ import Lights, { modelLightingPresets } from "./Lights.jsx";
 import { AWSModel } from "./models/AWSModel.jsx";
 import { XSMax2Model } from "./models/XSMax2Model.jsx";
 import { ConnectorClusterModel } from "./models/ConnectorClusterModel.jsx";
+import { GoniometerModel } from "./models/GoniometerModel.jsx";
 import { DESKTOP_SLIDE_SPACING, MOBILE_SLIDE_SPACING, SLIDE_DEPTH } from "./constants/slideLayout.js";
 
 const PHONE_SLIDE_INDEX = 0;
 const AWS_SLIDE_INDEX = 1;
 const CONNECTOR_SLIDE_INDEX = 2;
-const TOTAL_SLIDES = 3;
+const ANGULO_SLIDE_INDEX = 3;
+const TOTAL_SLIDES = 4;
 const DEG_TO_RAD = Math.PI / 180;
 const MOBILE_SCENE_VERTICAL_OFFSET = 1.4;
 
@@ -47,6 +49,7 @@ export default function Experience({
   totalSlides = TOTAL_SLIDES,
   isMobile = false,
   mobilePhoneInteractionEnabled = false,
+  mobileAnguloInteractionEnabled = false,
   diagnosticsEnabled = false,
   disableConnectorInteraction = false,
   onPresentationDragStart,
@@ -187,6 +190,10 @@ export default function Experience({
     () => onSlideAssetReady?.(AWS_SLIDE_INDEX),
     [onSlideAssetReady]
   );
+  const notifyAnguloReady = useCallback(
+    () => onSlideAssetReady?.(ANGULO_SLIDE_INDEX),
+    [onSlideAssetReady]
+  );
   const notifyConnectorReady = useCallback(
     () => onSlideAssetReady?.(CONNECTOR_SLIDE_INDEX),
     [onSlideAssetReady]
@@ -314,6 +321,18 @@ export default function Experience({
         ref={connectorAnchorRef}
         position={getSlidePosition(CONNECTOR_SLIDE_INDEX, layoutIndex, isMobile, 0, totalSlides)}
       />
+      <group position={getSlidePosition(ANGULO_SLIDE_INDEX, layoutIndex, isMobile, 0, totalSlides)}>
+        <GoniometerModel
+          scale={isMobile ? 1.1 : 0.9}
+          tilt={[toRadian(-14), toRadian(28), toRadian(4)]}
+          isActive={viewIndex === ANGULO_SLIDE_INDEX}
+          interactionEnabled={!isMobile || mobileAnguloInteractionEnabled}
+          holdStill={isMobile && mobileAnguloInteractionEnabled}
+          onDragStart={onPresentationDragStart}
+          onDragEnd={onPresentationDragEnd}
+          onReady={notifyAnguloReady}
+        />
+      </group>
       <ConnectorClusterModel
         isActive={viewIndex === CONNECTOR_SLIDE_INDEX}
         interactionEnabled={!disableConnectorInteraction}

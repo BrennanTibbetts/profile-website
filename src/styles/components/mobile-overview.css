@@ -131,14 +131,13 @@
 
 .mobile-overview-slide-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .mobile-overview-slide-tile {
   appearance: none;
   -webkit-appearance: none;
-  min-height: 122px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
@@ -165,6 +164,10 @@
   background: linear-gradient(155deg, #2f3553 0%, #454f7f 100%);
 }
 
+.mobile-overview-slide-tile.theme-3 {
+  background: linear-gradient(155deg, #173f3a 0%, #1d5c52 100%);
+}
+
 .mobile-overview-slide-tile.is-launching {
   transform: translateY(-6px) scale(1.03);
   filter: brightness(1.14);
@@ -178,7 +181,7 @@
 }
 
 .mobile-overview-slide-preview {
-  width: 100%;
+  width: 56px;
   aspect-ratio: 1 / 1;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -188,7 +191,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: 9px;
 }
 
 .mobile-overview-slide-preview.theme-0 {
@@ -201,6 +204,10 @@
 
 .mobile-overview-slide-preview.theme-2 {
   background: #8b74dd;
+}
+
+.mobile-overview-slide-preview.theme-3 {
+  background: #2f9c86;
 }
 
 .mobile-overview-slide-logo {
@@ -332,4 +339,10 @@
     transition: none;
     transform: none;
   }
+}
+
+/* With no nav tabs (no published posts), the social row spans the top bar. */
+.mobile-portfolio-topbar .mobile-portfolio-social:only-child {
+  flex: 1 1 auto;
+  justify-content: space-around;
 }

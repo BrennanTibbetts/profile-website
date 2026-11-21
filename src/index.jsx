@@ -4,6 +4,7 @@ import "./styles/index.css";
 import HomePage from "./pages/HomePage";
 import PortfolioPage from "./pages/PortfolioPage";
 import { BlogIndexPage, BlogPostPage } from "./pages/BlogPage";
+import { posts } from "./blog/posts";
 import { preloadPortfolioAssets } from "./utils/preloadPortfolioAssets";
 
 const MOBILE_BREAKPOINT = 768;
@@ -87,7 +88,9 @@ function NotFoundPage({ pathname, navigate }) {
         <div className="site-action-row">
           <button className="site-nav-btn" onClick={() => navigate("/")}>Home</button>
           <button className="site-nav-btn" onClick={() => navigate("/portfolio")}>Profile</button>
-          <button className="site-nav-btn" onClick={() => navigate("/blog")}>Posts</button>
+          {posts.length > 0 ? (
+            <button className="site-nav-btn" onClick={() => navigate("/blog")}>Posts</button>
+          ) : null}
         </div>
       </main>
     </div>

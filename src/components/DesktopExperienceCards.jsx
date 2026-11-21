@@ -13,10 +13,14 @@ const SLIDE_LOGOS = [
     src: "/images/three-js-logo-transparent.png",
     alt: "Three.js logo",
   },
+  {
+    src: "/images/angulo-logo.svg",
+    alt: "Angulo logo",
+  },
 ];
 
 export default function DesktopExperienceCards({ activeIndex = 0, onSelectSlide }) {
-  const visibleProjects = projects.slice(0, 3);
+  const visibleProjects = projects.slice(0, 4);
 
   return (
     <section className="desktop-experience-cards" aria-label="My experience">

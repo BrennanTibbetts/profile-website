@@ -1,4 +1,8 @@
 import AppLink from "./AppLink";
+import { posts } from "../blog/posts";
+
+// The Posts tab only appears once there is at least one published (non-hidden) post.
+const hasPublishedPosts = posts.length > 0;
 
 function isActive(pathname, target) {
   if (target === "/") {
@@ -46,7 +50,7 @@ export default function SiteTopNav({
           Profile
         </AppLink>
       )}
-      {showBlog && (
+      {showBlog && hasPublishedPosts && (
         <AppLink
           to="/blog"
           navigate={navigate}

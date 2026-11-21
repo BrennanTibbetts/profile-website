@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { bioText } from "../data";
 import SiteTopNav from "./SiteTopNav";
+import { posts } from "../blog/posts";
 import SocialThemeRow from "./SocialThemeRow";
 
 const SLIDE_LOGOS = [
@@ -15,6 +16,10 @@ const SLIDE_LOGOS = [
   {
     src: "/images/three-js-logo-transparent.png",
     alt: "Three.js logo",
+  },
+  {
+    src: "/images/angulo-logo.svg",
+    alt: "Angulo logo",
   },
 ];
 
@@ -36,21 +41,24 @@ export default function MobilePortfolioOverview({
   onSelectSlide,
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
-  const slideProjects = useMemo(() => projects.slice(0, 3), [projects]);
+  const slideProjects = useMemo(() => projects.slice(0, 4), [projects]);
   const aboutPreview = useMemo(() => getBioPreview(bioText), []);
 
   return (
     <div className={`mobile-overview-layer ${isActive ? "is-active" : "is-hidden"}`}>
       <div className="mobile-overview-surface">
         <header className="mobile-portfolio-topbar">
-          <SiteTopNav
-            pathname={pathname}
-            navigate={navigate}
-            showHome={false}
-            showPortfolio
-            showBlog
-            className="mobile-portfolio-nav"
-          />
+          {/* Home is hidden on phones, so the nav only earns its space once Posts exists. */}
+          {posts.length > 0 ? (
+            <SiteTopNav
+              pathname={pathname}
+              navigate={navigate}
+              showHome={false}
+              showPortfolio
+              showBlog
+              className="mobile-portfolio-nav"
+            />
+          ) : null}
           <SocialThemeRow className="mobile-portfolio-social" />
         </header>
 

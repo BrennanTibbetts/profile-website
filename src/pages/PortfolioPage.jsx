@@ -36,6 +36,7 @@ const DESKTOP_SCROLL_INERTIA_RELEASE_MS = 150;
 const PHONE_SLIDE_INDEX = 0;
 const AWS_SLIDE_INDEX = 1;
 const CONNECTOR_SLIDE_INDEX = 2;
+const ANGULO_SLIDE_INDEX = 3;
 const SLIDE_QUERY_KEY = "slide";
 const MOBILE_VIEW_QUERY_KEY = "mobileView";
 const DESKTOP_VIEW_QUERY_KEY = "desktopView";
@@ -259,16 +260,19 @@ export default function PortfolioPage({ pathname, navigate }) {
   const isMobileOverview = isMobile && mobileSurface === "overview";
   const isMobileSlideMode = !isMobile || mobileSurface === "slides";
   const shouldRenderCanvas = (isMobile ? hasActivatedMobileCanvas : true) && !hasCanvasFailure;
-  const canvasDpr = isLikelyIOSWebKit ? [1, 1] : [1, 1.25];
+  // Render at the screen's real pixel density (capped at 2x) with MSAA so model edges stay smooth.
+  const canvasDpr = [1, 2];
   const canvasGlProps = isLikelyIOSWebKit
-    ? { powerPreference: "default", antialias: false }
-    : { powerPreference: "high-performance" };
+    ? { powerPreference: "default", antialias: true }
+    : { powerPreference: "high-performance", antialias: true };
   const isPhoneSlide = viewIndex === PHONE_SLIDE_INDEX;
   const isConnectorSlide = viewIndex === CONNECTOR_SLIDE_INDEX;
+  const isAnguloSlide = viewIndex === ANGULO_SLIDE_INDEX;
+  const hasMobileInteractiveMode = isPhoneSlide || isConnectorSlide || isAnguloSlide;
   const isInteractionEnabledForCurrentSlide =
     isMobile &&
     isMobileSlideMode &&
-    (isPhoneSlide || isConnectorSlide) &&
+    hasMobileInteractiveMode &&
     mobileInteractionSlideIndex === viewIndex;
   const isMobileSwipeEnabled =
     SLIDE_SWIPE_ENABLED && isMobile && isMobileSlideMode && !isInteractionEnabledForCurrentSlide;
@@ -1086,7 +1090,7 @@ export default function PortfolioPage({ pathname, navigate }) {
             {isMobile &&
             isMobileSlideMode &&
             shouldRenderCanvas &&
-            (isPhoneSlide || isConnectorSlide) &&
+            hasMobileInteractiveMode &&
             !showInfo ? (
               <button
                 type="button"
@@ -1134,6 +1138,7 @@ export default function PortfolioPage({ pathname, navigate }) {
                     isMobile={isMobile}
                     mobilePhoneInteractionEnabled={isMobile && mobileInteractionSlideIndex === PHONE_SLIDE_INDEX}
                     disableConnectorInteraction={isMobile && mobileInteractionSlideIndex !== CONNECTOR_SLIDE_INDEX}
+                    mobileAnguloInteractionEnabled={isMobile && mobileInteractionSlideIndex === ANGULO_SLIDE_INDEX}
                     onSlideAssetReady={markSlideAssetReady}
                     onPresentationDragStart={() => {
                       isPresentationDraggingRef.current = true;
