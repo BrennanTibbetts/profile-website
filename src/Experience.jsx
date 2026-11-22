@@ -231,6 +231,7 @@ export default function Experience({
                     edgeMaterialPreset={props.phoneEdgeMaterial}
                     glassMaterialPreset={props.phoneGlassMaterial}
                     sideRailMaterialPreset={props.phoneSideRailMaterial}
+                    screenVideoPlaying={viewIndex === PHONE_SLIDE_INDEX}
                     onReady={notifyPhoneReady}
                   />
                 </group>
@@ -270,6 +271,7 @@ export default function Experience({
                   edgeMaterialPreset={props.phoneEdgeMaterial}
                   glassMaterialPreset={props.phoneGlassMaterial}
                   sideRailMaterialPreset={props.phoneSideRailMaterial}
+                  screenVideoPlaying={viewIndex === PHONE_SLIDE_INDEX}
                   onReady={notifyPhoneReady}
                 />
               </group>

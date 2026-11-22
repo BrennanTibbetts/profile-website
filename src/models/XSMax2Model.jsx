@@ -1,5 +1,5 @@
 import { useFBX, useTexture } from "@react-three/drei";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 const XS_MAX_2_MODEL_PATH = "/assets/models/XS%20Max%202/iPhone%20XS%20Max.fbx";
@@ -7,6 +7,67 @@ const FBX_UNIT_NORMALIZATION = 0.01;
 const XS_MAX_2_TEXTURE_PATHS = {
   lockXs3: "/assets/models/XS%20Max%202/textures/LockScreen-xs3.png",
 };
+// Silent, looping screen recording played on the phone's display. The still
+// lock screen shows until the first video frame is ready (or if video fails).
+export const PHONE_SCREEN_VIDEO_PATH = "/assets/videos/iphone-screen.mp4";
+
+function useScreenVideoTexture(src, playing) {
+  const [texture, setTexture] = useState(null);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (!src || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const video = document.createElement("video");
+    video.src = src;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.crossOrigin = "anonymous";
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    videoRef.current = video;
+
+    const videoTexture = new THREE.VideoTexture(video);
+    videoTexture.colorSpace = THREE.SRGBColorSpace;
+    videoTexture.flipY = true;
+
+    const handleReady = () => setTexture(videoTexture);
+    video.addEventListener("loadeddata", handleReady, { once: true });
+    video.load();
+
+    return () => {
+      video.removeEventListener("loadeddata", handleReady);
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      videoTexture.dispose();
+      videoRef.current = null;
+      setTexture(null);
+    };
+  }, [src]);
+
+  // Only decode while the phone slide is on screen.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !texture) {
+      return;
+    }
+    if (playing) {
+      video.play().catch(() => {
+        // Autoplay can be refused (e.g. low-power mode); the current frame stays up.
+      });
+    } else {
+      video.pause();
+    }
+  }, [playing, texture]);
+
+  return texture;
+}
+
 const PHONE_HIDDEN_MATERIAL_NAMES = new Set(["back", "logo", "lens", "mic", "flash"]);
 const PHONE_SURFACE_MATERIAL_PRESETS = {
   graphite: {
@@ -135,12 +196,15 @@ export function XSMax2Model({
   edgeMaterialPreset = "matchTrim",
   glassMaterialPreset = "matchTrim",
   sideRailMaterialPreset = "matchTrim",
+  screenVideoSrc = PHONE_SCREEN_VIDEO_PATH,
+  screenVideoPlaying = true,
   onReady,
   ...props
 }) {
   const scene = useFBX(XS_MAX_2_MODEL_PATH);
   const textures = useTexture(XS_MAX_2_TEXTURE_PATHS);
   const hasNotifiedReadyRef = useRef(false);
+  const screenVideoTexture = useScreenVideoTexture(screenVideoSrc, screenVideoPlaying);
 
   const modelScene = useMemo(() => {
     const clone = scene.clone(true);
@@ -175,7 +239,7 @@ export function XSMax2Model({
   }, [textures]);
 
   useEffect(() => {
-    const selectedScreenTexture = textures.lockXs3;
+    const selectedScreenTexture = screenVideoTexture ?? textures.lockXs3;
     const resolvedEdgeMaterialPreset =
       edgeMaterialPreset === "matchTrim" ? trimMaterialPreset : edgeMaterialPreset;
     const resolvedGlassMaterialPreset =
@@ -244,6 +308,7 @@ export function XSMax2Model({
   }, [
     modelScene,
     textures,
+    screenVideoTexture,
     screenEmissiveIntensity,
     trimMaterialPreset,
     edgeMaterialPreset,
