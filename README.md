@@ -1,30 +1,36 @@
-# React Three Fiber + Vite Starter
+# brennantibbetts.online
 
-_A simple React Three Fiber + Vite starter with an import-ready CodeSandbox config._
+Brennan Tibbetts's portfolio: one scrolling page of the apps he's built, each on a 3D iPhone playing a screen recording, with a pinned scene that turns Waypoint into a diagram of its AWS backend.
 
-![Preview](/public/preview.gif)
+React 18 and Vite 6, with three.js through React Three Fiber and drei. Hosted on Vercel.
 
-### Resources:
+## Develop
 
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/): Three.js Renderer
-- [Drei](https://github.com/pmndrs/drei): React Three Fiber Helpers
-- [Three.js](https://threejs.org/docs/index.html#manual/en/introduction/Creating-a-scene): 3D Engine
-- [Vite](https://vitejs.dev/guide/): Static Web Server
-- [CodeSandbox](https://codesandbox.io/docs/configuration): Online Prototyping Container (optional)
-
-### Installation
-
-```
+```bash
 npm install
-```
-
-### Scripts
-
-```
 npm run dev
-npm run build
-npm run preview
-npm run sandbox
 ```
-### CodeSandbox
-To create a sandbox from this starter, [import your repository URL](https://codesandbox.io/dashboard/repositories) (this repo works too), or [fork this template](https://codesandbox.io/s/react-three-fiber-vite-starter-r1tgld).
+
+## Deploy
+
+```bash
+npm run deploy
+```
+
+This builds and deploys production with the Vercel CLI. Pushing to `main` deploys production too.
+
+## Where things are
+
+- `src/apps.js`: the apps, in page order (copy, tech, accent colour, screen recording, companion model).
+- `src/pages/ScrollPortfolioPage.jsx`: the page. The 3D views (`src/components/SceneViews.jsx`) load separately so the text paints first.
+- `src/components/ShowcasePhone.jsx`: an app's phone and the model floating beside it.
+- `src/components/WaypointJourney.jsx`: the Waypoint-to-backend diagram scene.
+- `src/pages/PlayPage.jsx` and `src/play/blocks.js`: the block game at `/play`, behind the "psst" arrow in the intro's corner.
+- `public/assets/videos/`: screen recordings (silent, looping H.264 MP4).
+- `public/assets/Resume_Brennan_Tibbetts.pdf`: the résumé.
+- `content/blog/`: Markdown posts. Posts with `hidden: true` only show under `/blog/hidden`; the Posts tab appears once a post is public.
+- `public/fonts/fraunces/`: subsets of Fraunces (SIL OFL), built by `scripts/subset-fonts.py`.
+
+## Credits
+
+“Coffee Cup” by AK STUDIO and “Climbing Shoe Scan LOWPOLY” by EvanLegrand, both CC BY 4.0, credited in the page footer.

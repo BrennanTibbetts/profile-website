@@ -1,0 +1,280 @@
+/* The block game at /play (see pages/PlayPage.jsx). */
+
+.play-page {
+  --well-height: min(calc(100dvh - 150px), 760px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  background: #000000;
+  color: #f4f4f4;
+  /* Drags and swipes steer the game instead of scrolling or selecting. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.play-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px clamp(16px, 4vw, 40px);
+}
+
+/* Same rail look as the site's other small buttons. */
+.play-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 8, 8, 0.74);
+  color: #f4f4f4;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.play-chip:first-child {
+  padding-left: 10px;
+}
+
+.play-chip svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .play-chip:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.play-main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 0 16px 32px;
+}
+
+/* The page's heading, for screen readers only. */
+.play-hidden-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The well, with "Next" beside it and the drop button under it. */
+.play-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(100%, calc(var(--well-height) * 10 / 18));
+}
+
+.play-well {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 10 / 18;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0c0c0d;
+}
+
+.play-well canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.play-overlay-title {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.play-overlay-text {
+  margin: 0;
+  max-width: 24ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(244, 244, 244, 0.7);
+}
+
+.play-button {
+  margin-top: 6px;
+  height: 42px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 12px;
+  background: #f4f4f4;
+  color: #0c0c0d;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.play-next {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 20px);
+  width: 120px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0c0c0d;
+}
+
+.play-label {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 244, 0.5);
+}
+
+.play-next canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  margin-top: 6px;
+}
+
+.play-drop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f4f4;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.play-drop:active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.play-drop svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.play-hint {
+  margin: 0;
+  max-width: 44ch;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  color: rgba(244, 244, 244, 0.45);
+}
+
+/* One hint per kind of pointer. */
+.play-hint-touch {
+  display: none;
+}
+
+/* With a mouse, space drops; the button is for touch screens. */
+@media (hover: hover) and (pointer: fine) {
+  .play-drop {
+    display: none;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .play-hint-mouse {
+    display: none;
+  }
+
+  .play-hint-touch {
+    display: block;
+  }
+}
+
+/* Phones: "Next" moves up beside the back link, so the board gets the room. */
+@media (max-width: 720px) {
+  .play-page {
+    --well-height: max(240px, calc(100dvh - 196px));
+  }
+
+  .play-main {
+    gap: 12px;
+    padding-bottom: 20px;
+  }
+
+  .play-board {
+    position: static;
+  }
+
+  .play-next {
+    top: 16px;
+    left: auto;
+    right: clamp(16px, 4vw, 40px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: auto;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 12px;
+  }
+
+  .play-next canvas {
+    width: 52px;
+    margin-top: 0;
+  }
+}

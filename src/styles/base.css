@@ -1,5 +1,17 @@
 /* Base styles - Resets, global variables, and foundational styles */
 
+/* Fraunces (SIL Open Font License, see /fonts/fraunces/OFL.txt): the variable
+   serif from Cadence. This file is a Latin-only subset with Cadence's soft,
+   wonky style (SOFT 100, WONK 1) built in; optical size and weight stay
+   variable. Regenerate with scripts/subset-fonts.py. */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/fraunces/fraunces-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -16,7 +28,9 @@ body,
 }
 
 body {
-  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 450;
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #fff;
@@ -30,10 +44,4 @@ body {
   --contrast-bg: #ffffff;
   --contrast-border: rgba(0,0,0,0.08);
   --contrast-color: #111;
-}
-
-#leva__root {
-  top: 12px !important;
-  left: 12px !important;
-  right: auto !important;
 }

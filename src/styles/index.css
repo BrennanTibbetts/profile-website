@@ -1,21 +1,4 @@
-/* Main styles entry point - Imports all modular styles */
-
-/* Base styles */
+/* Styles entry point */
 @import './base.css';
-
-/* Layout styles */
-@import './layout.css';
-
-/* Component styles */
-@import './components/header.css';
-@import './components/actions.css';
-@import './components/overlay.css';
-@import './components/controls.css';
-@import './components/canvas.css';
-@import './components/mobile-overview.css';
-@import './components/desktop-overview.css';
-@import './components/desktop-experience-cards.css';
 @import './pages/site.css';
-
-/* Responsive styles */
-@import './responsive/mobile.css';
+@import './pages/scroll-portfolio.css';

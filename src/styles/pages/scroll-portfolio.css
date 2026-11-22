@@ -1,0 +1,687 @@
+/* Scroll portfolio: ASCII intro, one section per app (3D phone + copy,
+   alternating sides), then about/resume. The page is its own scroller
+   because the rest of the site locks body scrolling. */
+
+.scroll-page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #000000;
+  color: #f4f4f4;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* One transparent canvas over the page; each app section's <View> draws its
+   phone into this canvas at that section's position. */
+.scroll-canvas-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.scroll-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px clamp(16px, 4vw, 40px);
+}
+
+/* Social buttons (top bar and about section) match the other pages' top bars. */
+.scroll-page .site-social-row .social-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+}
+
+.scroll-page .site-social-row .social-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  filter: invert(1) brightness(1.04);
+}
+
+/* ---------- Section bands ---------- */
+
+/* Sections alternate between two blacks so each reads as its own band. */
+.band-a {
+  --band: #000000;
+}
+
+.band-b {
+  --band: #161618;
+}
+
+.scroll-hero,
+.scroll-journey {
+  background: var(--band, #000000);
+}
+
+/* Sections laid out as a centred column still get a full-width band. */
+.scroll-band {
+  background: var(--band, #000000);
+  box-shadow: 0 0 0 100vmax var(--band, #000000);
+  clip-path: inset(0 -100vmax);
+}
+
+/* ---------- Intro ---------- */
+
+.scroll-hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 clamp(16px, 5vw, 48px);
+}
+
+.scroll-hero-inner {
+  width: min(1120px, 100%);
+  text-align: center;
+}
+
+/* The photo, above the name. */
+.scroll-hero-photo {
+  display: block;
+  width: clamp(76px, 9vw, 112px);
+  height: auto;
+  aspect-ratio: 1;
+  margin: 0 auto clamp(18px, 3vh, 32px);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04), 0 18px 48px rgba(0, 0, 0, 0.6);
+}
+
+.scroll-hero-eyebrow {
+  margin: clamp(16px, 2.4vh, 26px) 0 0;
+  font-size: clamp(13px, 1.4vw, 16px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(244, 244, 244, 0.6);
+}
+
+.scroll-hero-name {
+  margin: 0;
+  font-size: clamp(56px, 13vw, 184px);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+}
+
+.scroll-hero-word {
+  display: inline-block;
+  margin: 0 0.11em;
+  white-space: nowrap;
+}
+
+/* Social buttons and Resume, side by side under the eyebrow. */
+.scroll-hero-actions {
+  margin-top: clamp(22px, 3.2vh, 36px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.scroll-hero-social {
+  display: inline-flex;
+  width: auto;
+  justify-content: center;
+}
+
+/* Same rail look and height as the social buttons beside it. */
+.scroll-hero-resume {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 8, 8, 0.74);
+  color: #f4f4f4;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.scroll-hero-resume:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
+/* Letters rise in one after another, from soft-focus to sharp, and lift
+   slightly when hovered. Only opacity, transform and blur are animated:
+   animating font-weight re-lays out the text every frame, which jitters. */
+.scroll-hero-letter {
+  display: inline-block;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scroll-hero-letter:hover {
+    transform: translateY(-0.06em) scale(1.06);
+  }
+}
+
+@keyframes scroll-letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+/* The intro stays hidden until Fraunces has loaded (see useFontsReady), so
+   the animation never starts in the fallback font and then jumps. */
+.scroll-hero:not(.is-ready) :is(.scroll-hero-photo, .scroll-hero-eyebrow, .scroll-hero-letter, .scroll-hero-actions) {
+  opacity: 0;
+}
+
+.scroll-hero.is-ready .scroll-hero-photo {
+  animation: scroll-photo-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes scroll-photo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.scroll-hero.is-ready .scroll-hero-eyebrow {
+  animation: scroll-fade-up 900ms 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scroll-hero.is-ready .scroll-hero-letter {
+  animation: scroll-letter-in 900ms calc(var(--i) * 40ms + 80ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scroll-hero.is-ready .scroll-hero-actions {
+  animation: scroll-fade-up 900ms 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes scroll-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(20px, 5vh, 48px);
+  transform: translateX(-50%);
+  z-index: 3;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 0;
+  background: none;
+  color: rgba(244, 244, 244, 0.72);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.scroll-hint:hover {
+  color: #ffffff;
+}
+
+.scroll-hint-arrow {
+  font-size: 16px;
+  animation: scroll-hint-bob 1.8s ease-in-out infinite;
+}
+
+@keyframes scroll-hint-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+/* The easter egg: "psst" and an arrow in the corner, to the game at /play.
+   The arrow gives a little nudge every few seconds. */
+.scroll-sneaky {
+  position: absolute;
+  right: max(clamp(12px, 3vw, 32px), env(safe-area-inset-right));
+  bottom: clamp(20px, 5vh, 48px);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  color: rgba(244, 244, 244, 0.6);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.scroll-sneaky svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: scroll-sneaky-nudge 3s ease-in-out infinite;
+}
+
+@keyframes scroll-sneaky-nudge {
+  0%,
+  70%,
+  100% {
+    transform: translate(0, 0);
+  }
+  80% {
+    transform: translate(4px, 4px);
+  }
+  90% {
+    transform: translate(0, 0);
+  }
+}
+
+.scroll-sneaky:hover,
+.scroll-sneaky:focus-visible {
+  color: #ffffff;
+}
+
+.scroll-sneaky:hover svg {
+  animation: none;
+  transform: translate(3px, 3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-sneaky svg {
+    animation: none;
+  }
+}
+
+/* ---------- Apps ---------- */
+
+.scroll-eyebrow {
+  margin: 0 0 14px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: rgba(244, 244, 244, 0.55);
+}
+
+.scroll-app {
+  position: relative;
+  max-width: 1120px;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: clamp(24px, 6vh, 64px) clamp(16px, 5vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 72px);
+}
+
+.scroll-app-phone-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.scroll-app-phone {
+  width: 100%;
+  height: min(78vh, 760px);
+}
+
+.scroll-app--phone-right .scroll-app-phone-wrap {
+  order: 2;
+}
+
+.scroll-app-copy {
+  max-width: 52ch;
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-app.is-entered .scroll-app-copy {
+  opacity: 1;
+  transform: none;
+}
+
+.scroll-app-index {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--app-accent, #ffffff);
+}
+
+.scroll-app-name {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.scroll-app-tagline {
+  margin: 12px 0 0;
+  font-size: clamp(16px, 1.8vw, 20px);
+  line-height: 1.35;
+  color: var(--app-accent, #ffffff);
+}
+
+.scroll-app-meta {
+  margin: 10px 0 22px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 244, 0.55);
+}
+
+.scroll-app-text {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(244, 244, 244, 0.82);
+}
+
+.scroll-app-tech {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scroll-app-tech li {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--app-accent, #ffffff) 45%, transparent);
+  background: color-mix(in srgb, var(--app-accent, #ffffff) 10%, transparent);
+  font-size: 12px;
+  color: rgba(244, 244, 244, 0.9);
+}
+
+/* ---------- Under the hood (backend) ---------- */
+
+.scroll-arch-intro {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(72px, 12vh, 120px) clamp(16px, 5vw, 48px) 0;
+}
+
+.scroll-arch-heading {
+  margin: 0;
+  max-width: 20ch;
+  font-size: clamp(30px, 4.6vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.scroll-arch-lead {
+  margin: 18px 0 0;
+  max-width: 62ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(244, 244, 244, 0.8);
+}
+
+/* ---------- Waypoint journey (pinned) ---------- */
+
+.scroll-journey {
+  position: relative;
+}
+
+/* Phones only: the Waypoint text and the intro, in normal flow. */
+.scroll-journey-flow {
+  display: none;
+}
+
+.scroll-app-copy.is-static {
+  opacity: 1;
+  transform: none;
+}
+
+/* The tall track the stage stays pinned in while you scroll through it. */
+.scroll-journey-track {
+  position: relative;
+  height: 420vh;
+}
+
+.scroll-journey-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  /* Set from JS: 0..1 through the track. */
+  --journey: 0;
+}
+
+.scroll-journey-view {
+  position: absolute;
+  inset: 0;
+}
+
+.scroll-journey-layer {
+  position: absolute;
+  inset: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 5vw, 48px);
+  pointer-events: none;
+}
+
+/* The Waypoint text, in the left column like the other sections, fading
+   out as the phone starts moving into the diagram. */
+.scroll-app-copy.scroll-journey-app {
+  position: absolute;
+  top: 50%;
+  left: clamp(16px, 5vw, 48px);
+  width: calc(50% - clamp(16px, 5vw, 48px) - clamp(12px, 2.5vw, 36px));
+  opacity: calc(1 - clamp(0, (var(--journey) - 0.08) / 0.12, 1));
+  transform: translateY(calc(-50% - clamp(0, (var(--journey) - 0.08) / 0.12, 1) * 24px));
+}
+
+/* "Under the hood" fades in at the top as the diagram assembles below. */
+.scroll-journey-arch {
+  position: absolute;
+  top: clamp(56px, 9vh, 104px);
+  left: clamp(16px, 5vw, 48px);
+  right: clamp(16px, 5vw, 48px);
+  opacity: clamp(0, (var(--journey) - 0.32) / 0.12, 1);
+  transform: translateY(calc((1 - clamp(0, (var(--journey) - 0.32) / 0.12, 1)) * 20px));
+}
+
+/* ---------- About ---------- */
+
+.scroll-about {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: clamp(80px, 16vh, 160px) clamp(16px, 5vw, 48px) clamp(64px, 12vh, 120px);
+  text-align: center;
+}
+
+.scroll-about-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.scroll-about-name {
+  margin: 18px 0 0;
+  font-size: clamp(26px, 3.4vw, 36px);
+}
+
+.scroll-about-text {
+  margin: 14px auto 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(244, 244, 244, 0.78);
+}
+
+.scroll-about-actions {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.scroll-about-btn {
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-surface-border);
+  color: #f4f4f4;
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.scroll-about-btn:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.scroll-about-btn--primary {
+  background: #f4f4f4;
+  border-color: #f4f4f4;
+  color: #000000;
+}
+
+.scroll-about-btn--primary:hover {
+  background: #ffffff;
+}
+
+.scroll-about-social {
+  display: inline-flex;
+  width: auto;
+  margin-top: 28px;
+  justify-content: center;
+}
+
+.scroll-credits {
+  padding: 0 clamp(16px, 5vw, 48px) 32px;
+  text-align: center;
+  font-size: 12px;
+  color: #1f1f1f; /* very dark charcoal: quiet, but still legible for the CC BY credit */
+}
+
+.scroll-credits p {
+  margin: 0;
+}
+
+.scroll-credits a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.scroll-credits a:hover {
+  color: #444444;
+}
+
+/* ---------- Phones / narrow screens ---------- */
+
+@media (max-width: 768px) {
+  /* Phones: Waypoint text, then the pinned scene, then the intro. */
+  .scroll-journey-flow {
+    display: block;
+    padding: 48px clamp(16px, 5vw, 48px) 0;
+  }
+
+  .scroll-journey-flow .scroll-arch-intro {
+    padding: 0 0 56px;
+  }
+
+  .scroll-journey-layer {
+    display: none;
+  }
+
+  .scroll-journey-track {
+    height: 360vh;
+  }
+
+  .scroll-app {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding-top: 48px;
+    padding-bottom: 56px;
+  }
+
+  .scroll-app-phone {
+    height: 58vh;
+    height: 58svh;
+  }
+
+  .scroll-app--phone-right .scroll-app-phone-wrap {
+    order: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-page {
+    scroll-behavior: auto;
+  }
+
+  .scroll-app-copy {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .scroll-hint-arrow,
+  .scroll-hero .scroll-hero-photo,
+  .scroll-hero .scroll-hero-eyebrow,
+  .scroll-hero .scroll-hero-letter,
+  .scroll-hero .scroll-hero-actions {
+    animation: none;
+    opacity: 1;
+  }
+}

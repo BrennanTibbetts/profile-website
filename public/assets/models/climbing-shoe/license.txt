@@ -1,0 +1,11 @@
+Model Information:
+* title:	Climbing Shoe Scan LOWPOLY
+* source:	https://sketchfab.com/3d-models/climbing-shoe-scan-lowpoly-cb2cedcb90cd48999632e4aa33488262
+* author:	EvanLegrand (https://sketchfab.com/evan4129)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Climbing Shoe Scan LOWPOLY" (https://sketchfab.com/3d-models/climbing-shoe-scan-lowpoly-cb2cedcb90cd48999632e4aa33488262) by EvanLegrand (https://sketchfab.com/evan4129) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
