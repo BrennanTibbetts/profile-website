@@ -339,8 +339,9 @@ export default function WaypointJourney({ progressRef, videoSrc, videoLoad = fal
         </Float>
       </group>
 
+      {/* The receiving phone runs Waypoint too, half a loop out of step. */}
       <group ref={phoneBRef} visible={false}>
-        <PhoneModel />
+        <PhoneModel screenVideoSrc={videoSrc} screenVideoLoad={videoLoad} screenVideoPlaying={isPlaying} screenVideoOffset={0.5} />
         <PushBanner bannerRef={bannerRef} />
       </group>
 

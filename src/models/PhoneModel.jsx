@@ -21,9 +21,10 @@ const SCREEN_MATERIAL = "screen.001";
 /**
  * A silent, looping video texture. The video is only created once `load` is
  * true (the section is near), so recordings don't download up front, and it
- * only plays while `playing` is true.
+ * only plays while `playing` is true. `offset` (0 to 1) starts it that far
+ * into the recording, so two phones playing it aren't in step.
  */
-function useScreenVideoTexture(src, load, playing) {
+function useScreenVideoTexture(src, load, playing, offset = 0) {
   const [texture, setTexture] = useState(null);
   const videoRef = useRef(null);
   const shouldLoad = Boolean(src) && load;
@@ -48,10 +49,17 @@ function useScreenVideoTexture(src, load, playing) {
     videoTexture.flipY = false;
 
     const handleReady = () => setTexture(videoTexture);
+    const handleMetadata = () => {
+      if (offset > 0 && Number.isFinite(video.duration)) {
+        video.currentTime = (offset % 1) * video.duration;
+      }
+    };
+    video.addEventListener("loadedmetadata", handleMetadata, { once: true });
     video.addEventListener("loadeddata", handleReady, { once: true });
     video.load();
 
     return () => {
+      video.removeEventListener("loadedmetadata", handleMetadata);
       video.removeEventListener("loadeddata", handleReady);
       video.pause();
       video.removeAttribute("src");
@@ -60,7 +68,7 @@ function useScreenVideoTexture(src, load, playing) {
       videoRef.current = null;
       setTexture(null);
     };
-  }, [src, shouldLoad]);
+  }, [src, shouldLoad, offset]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -82,12 +90,18 @@ function useScreenVideoTexture(src, load, playing) {
 /**
  * The iPhone, standing up and facing the camera. Its screen shows
  * `screenVideoSrc` once loaded (see useScreenVideoTexture), otherwise the
- * lock screen.
+ * lock screen. `screenVideoOffset` starts the video part-way through.
  */
-export function PhoneModel({ screenVideoSrc = null, screenVideoLoad = false, screenVideoPlaying = false, ...props }) {
+export function PhoneModel({
+  screenVideoSrc = null,
+  screenVideoLoad = false,
+  screenVideoPlaying = false,
+  screenVideoOffset = 0,
+  ...props
+}) {
   const { scene } = useGLTF(MODEL_PATH);
   const lockScreen = useTexture(LOCK_SCREEN_PATH);
-  const videoTexture = useScreenVideoTexture(screenVideoSrc, screenVideoLoad, screenVideoPlaying);
+  const videoTexture = useScreenVideoTexture(screenVideoSrc, screenVideoLoad, screenVideoPlaying, screenVideoOffset);
 
   // Each phone gets its own copy of the model and materials.
   const { model, screenMaterials } = useMemo(() => {

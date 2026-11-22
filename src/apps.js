@@ -12,7 +12,7 @@ export const apps = [
     tagline: "The app NetJets pilots fly with.",
     meta: "NetJets · Deployed to ~12,000 devices",
     accent: "#7fa3e8",
-    video: null,
+    video: "/assets/videos/waypoint.mp4",
     paragraphs: [
       `For the past ${yearsSince(IOS_ROLE_START_DATE)}, I’ve worked on Waypoint, the pilot-facing iOS app at NetJets, deployed to roughly 12,000 devices. I’ve helped lead its move from Objective-C and UIKit to modern Swift, working extensively with SwiftUI, SwiftData and Core Data.`,
       "I design in Figma and build features end to end against microservice-backed REST APIs, maintain the app, support crew members in the field, and ship releases through mobile device management.",
@@ -39,7 +39,7 @@ export const apps = [
     tagline: "Joint angles, measured from a photo.",
     meta: "Built solo · Sold to an athletic training company in 2026",
     accent: "#34d3b4",
-    video: null,
+    video: "/assets/videos/angulo.mp4",
     companion: "goniometer",
     paragraphs: [
       "Angulo is an iPhone and iPad app I designed and built on my own, then sold to an athletic training company. Users take or import a photo, measure joint angles with a three-point goniometer tool, and annotate it with labels and pinned comments.",
