@@ -2,10 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
-// iPhone model (GLB, metres, lying flat) and the lock screen shown until a
-// screen recording is playing.
+// iPhone model (GLB, metres, lying flat) and the lock screen, shown on a
+// phone that has no screen recording.
 const MODEL_PATH = "/assets/models/iphone/iphone.glb";
 const LOCK_SCREEN_PATH = "/assets/models/iphone/lock-screen.jpg";
+
+// Each recording has its first frame saved beside it as a JPEG (same name),
+// shown until the video can play so the screen never flashes something else.
+function posterFor(videoSrc) {
+  return videoSrc ? videoSrc.replace(/\.mp4$/i, ".jpg") : LOCK_SCREEN_PATH;
+}
 
 // Stand the phone up, screen towards +Z, and scale it so it's about 5 scene
 // units tall at scale 1 (the sizes the rest of the site was tuned with).
@@ -89,8 +95,8 @@ function useScreenVideoTexture(src, load, playing, offset = 0) {
 
 /**
  * The iPhone, standing up and facing the camera. Its screen shows
- * `screenVideoSrc` once loaded (see useScreenVideoTexture), otherwise the
- * lock screen. `screenVideoOffset` starts the video part-way through.
+ * `screenVideoSrc` once it can play (see useScreenVideoTexture), and its first
+ * frame until then (see posterFor). `screenVideoOffset` starts the video part-way through.
  */
 export function PhoneModel({
   screenVideoSrc = null,
@@ -100,7 +106,7 @@ export function PhoneModel({
   ...props
 }) {
   const { scene } = useGLTF(MODEL_PATH);
-  const lockScreen = useTexture(LOCK_SCREEN_PATH);
+  const still = useTexture(posterFor(screenVideoSrc));
   const videoTexture = useScreenVideoTexture(screenVideoSrc, screenVideoLoad, screenVideoPlaying, screenVideoOffset);
 
   // Each phone gets its own copy of the model and materials.
@@ -132,18 +138,18 @@ export function PhoneModel({
   }, [scene]);
 
   useEffect(() => {
-    lockScreen.colorSpace = THREE.SRGBColorSpace;
-    lockScreen.flipY = false;
-    lockScreen.needsUpdate = true;
-  }, [lockScreen]);
+    still.colorSpace = THREE.SRGBColorSpace;
+    still.flipY = false;
+    still.needsUpdate = true;
+  }, [still]);
 
   useEffect(() => {
-    const screenTexture = videoTexture ?? lockScreen;
+    const screenTexture = videoTexture ?? still;
     screenMaterials.forEach((material) => {
       material.map = screenTexture;
       material.needsUpdate = true;
     });
-  }, [screenMaterials, videoTexture, lockScreen]);
+  }, [screenMaterials, videoTexture, still]);
 
   return (
     <group {...props} dispose={null}>
@@ -155,4 +161,3 @@ export function PhoneModel({
 }
 
 useGLTF.preload(MODEL_PATH);
-useTexture.preload(LOCK_SCREEN_PATH);

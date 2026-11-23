@@ -10,7 +10,6 @@ import { posts } from "../blog/posts";
 const loadScene = () => import("../components/SceneViews");
 const PhoneView = lazy(() => loadScene().then((module) => ({ default: module.PhoneView })));
 const JourneyView = lazy(() => loadScene().then((module) => ({ default: module.JourneyView })));
-const SceneCanvas = lazy(() => loadScene().then((module) => ({ default: module.SceneCanvas })));
 
 const RESUME_PATH = "/assets/Resume_Brennan_Tibbetts.pdf";
 const NAME_WORDS = ["Brennan", "Tibbetts"];
@@ -85,6 +84,15 @@ function HeroName() {
 
 // True while the element is at least `threshold` visible in the viewport
 // (grown by `rootMargin`, e.g. "100% 0px" to count a screen ahead).
+// True from the first time `value` is true.
+function useLatch(value) {
+  const [latched, setLatched] = useState(value);
+  if (value && !latched) {
+    setLatched(true);
+  }
+  return latched;
+}
+
 function useInView(ref, threshold = 0.15, rootMargin = "0px") {
   const [inView, setInView] = useState(false);
 
@@ -137,9 +145,11 @@ function AppSection({ app, index }) {
   const [hasEntered, setHasEntered] = useState(false);
   // Phones alternate sides, starting on the right.
   const side = index % 2 === 0 ? "right" : "left";
-  // Drag the phone to spin it. On touch screens a sideways drag spins it and
-  // an up/down one still scrolls the page (touch-action in the CSS).
+  // Drag the phone to spin it (on touch screens, a finger on the phone holds
+  // the page still; see SceneViews).
   const phoneClass = "scroll-app-phone";
+  // Its canvas is created when the section first comes near, then kept.
+  const hasBeenNear = useLatch(isNear);
 
   useEffect(() => {
     if (inView) {
@@ -159,16 +169,21 @@ function AppSection({ app, index }) {
     >
       <div className="scroll-app-phone-wrap">
         <Suspense fallback={<div className={phoneClass} />}>
-          <PhoneView
-            className={phoneClass}
-            sectionRef={sectionRef}
-            videoSrc={app.video}
-            videoLoad={isNear}
-            isPlaying={inView}
-            side={side}
-            draggable
-            companion={app.companion}
-          />
+          {hasBeenNear ? (
+            <PhoneView
+              className={phoneClass}
+              active={isNear}
+              sectionRef={sectionRef}
+              videoSrc={app.video}
+              videoLoad={isNear}
+              isPlaying={inView}
+              side={side}
+              draggable
+              companion={app.companion}
+            />
+          ) : (
+            <div className={phoneClass} />
+          )}
         </Suspense>
       </div>
 
@@ -258,6 +273,7 @@ function WaypointJourneySection({ app, index, scrollRef }) {
           <Suspense fallback={<div className="scroll-journey-view" />}>
             <JourneyView
               className="scroll-journey-view"
+              active={isNear}
               progressRef={progressRef}
               videoSrc={app.video}
               videoLoad={isNear}
@@ -293,6 +309,31 @@ export default function ScrollPortfolioPage({ pathname, navigate }) {
     if (page && appsSection) {
       page.scrollTo({ top: appsSection.offsetTop, behavior });
     }
+  }, []);
+
+  // The scrollbar takes the colours of the section across the middle of the
+  // screen: its accent for the thumb, its band for the track.
+  useEffect(() => {
+    const page = scrollRef.current;
+    if (!page || typeof IntersectionObserver === "undefined") {
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries.find((item) => item.isIntersecting);
+        if (!entry) {
+          return;
+        }
+        const style = getComputedStyle(entry.target);
+        const accent = style.getPropertyValue("--app-accent").trim();
+        const band = style.getPropertyValue("--band").trim();
+        page.style.setProperty("--scroll-thumb", accent || "rgba(244, 244, 244, 0.45)");
+        page.style.setProperty("--scroll-track", band || "#000000");
+      },
+      { root: page, rootMargin: "-50% 0px -50% 0px" }
+    );
+    page.querySelectorAll(":scope > section, :scope > div > section, :scope > footer").forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
   // /portfolio (where the resume links) opens on the apps rather than the intro.
@@ -416,11 +457,6 @@ export default function ScrollPortfolioPage({ pathname, navigate }) {
         </p>
       </footer>
 
-      <div className="scroll-canvas-layer" aria-hidden="true">
-        <Suspense fallback={null}>
-          <SceneCanvas eventSource={scrollRef} />
-        </Suspense>
-      </div>
     </div>
   );
 }

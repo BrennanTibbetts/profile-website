@@ -6,7 +6,7 @@ import * as THREE from "three";
 // A small studio for reflections: a bright sky overhead, a big soft panel on
 // each side and a dim floor. It's drawn from a few planes, so there's no HDR
 // image to download (it used to be drei's "city" preset, from a third-party
-// CDN), and it's built once and shared by every phone scene.
+// CDN). It's built once per canvas (renderer).
 const PANELS = [
   { color: "#f2f4f7", intensity: 3, position: [0, 6, 0], rotation: [Math.PI / 2, 0, 0], scale: [14, 14] },
   { color: "#ffffff", intensity: 1.6, position: [-6, 1.5, 2], rotation: [0, Math.PI / 2, 0], scale: [8, 4] },
@@ -15,7 +15,7 @@ const PANELS = [
   { color: "#8a8178", intensity: 0.25, position: [0, -5, 0], rotation: [-Math.PI / 2, 0, 0], scale: [14, 14] },
 ];
 
-let studio = null;
+const studios = new WeakMap();
 
 function buildStudio(gl) {
   const scene = new THREE.Scene();
@@ -49,8 +49,10 @@ function buildStudio(gl) {
 export default function PhoneLighting() {
   const gl = useThree((state) => state.gl);
   const map = useMemo(() => {
-    studio ??= buildStudio(gl);
-    return studio;
+    if (!studios.has(gl)) {
+      studios.set(gl, buildStudio(gl));
+    }
+    return studios.get(gl);
   }, [gl]);
 
   return (

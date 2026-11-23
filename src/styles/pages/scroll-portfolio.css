@@ -2,7 +2,25 @@
    alternating sides), then about/resume. The page is its own scroller
    because the rest of the site locks body scrolling. */
 
+/* The scrollbar matches the section in view (set from JS), easing between
+   sections. */
+@property --scroll-thumb {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(244, 244, 244, 0.45);
+}
+
+@property --scroll-track {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #000000;
+}
+
 .scroll-page {
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  transition:
+    --scroll-thumb 400ms ease,
+    --scroll-track 400ms ease;
   position: relative;
   width: 100%;
   height: 100vh;
@@ -13,15 +31,6 @@
   color: #f4f4f4;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-}
-
-/* One transparent canvas over the page; each app section's <View> draws its
-   phone into this canvas at that section's position. */
-.scroll-canvas-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
 }
 
 .scroll-topbar {
@@ -50,6 +59,21 @@
   height: 24px;
   display: block;
   filter: invert(1) brightness(1.04);
+}
+
+/* Safari (no scrollbar-color yet). */
+.scroll-page::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scroll-page::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+
+.scroll-page::-webkit-scrollbar-thumb {
+  border: 2px solid var(--scroll-track);
+  border-radius: 999px;
+  background: var(--scroll-thumb);
 }
 
 /* ---------- Section bands ---------- */

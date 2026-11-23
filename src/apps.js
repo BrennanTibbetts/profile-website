@@ -1,8 +1,9 @@
 import { IOS_ROLE_START_DATE, yearsSince } from "./utils/yearsSince";
 
 // Apps shown on the scroll portfolio, in page order. `video` is a silent,
-// looping H.264 MP4 under public/assets/videos (null shows the default lock
-// screen until a recording is added). `accent` tints the section's labels.
+// looping H.264 MP4 under public/assets/videos, with its first frame saved
+// beside it as a JPEG of the same name (shown until the video plays; null
+// shows the default lock screen). `accent` tints the section's labels.
 // `companion` (optional) names a 3D object floating by the phone; see
 // COMPANIONS in components/ShowcasePhone.jsx.
 export const apps = [
@@ -52,7 +53,7 @@ export const apps = [
     name: "Chalkmark",
     tagline: "Recognizing boulder problems by their holds.",
     meta: "Proof of concept · ARKit",
-    accent: "#e8e4d8",
+    accent: "#a3e635",
     video: "/assets/videos/chalkmark.mp4",
     companion: "climbing-shoe",
     paragraphs: [
