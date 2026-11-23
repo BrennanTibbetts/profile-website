@@ -50,3 +50,6 @@ export function CoffeeCupModel({ width = 1.8, renderOrder = 0, ...props }) {
     </group>
   );
 }
+
+// Fetched as soon as the 3D code loads, not when Cadence comes into view.
+useGLTF.preload(CUP_PATH);

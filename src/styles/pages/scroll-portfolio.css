@@ -31,6 +31,42 @@
   color: #f4f4f4;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* A little gravity: stop near the top of a section and it settles there;
+     anywhere else, scrolling stays free. */
+  scroll-snap-type: y proximity;
+}
+
+.scroll-hero,
+.scroll-app,
+.scroll-about,
+.scroll-journey-flow {
+  scroll-snap-align: start;
+}
+
+/* A fast flick still stops at the next app instead of flying past it. */
+.scroll-app,
+.scroll-journey-mark {
+  scroll-snap-stop: always;
+}
+
+/* Waypoint's pinned track is taller than the screen, which would make the
+   browser ignore anchors inside it, so it gets small markers instead: one
+   where the scene pins, one where the diagram has finished drawing. */
+.scroll-journey-mark {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.scroll-journey-mark--start {
+  top: 0;
+  scroll-snap-align: start;
+}
+
+.scroll-journey-mark--end {
+  bottom: 0;
+  scroll-snap-align: end;
 }
 
 .scroll-topbar {

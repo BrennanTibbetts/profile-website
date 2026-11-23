@@ -84,15 +84,6 @@ function HeroName() {
 
 // True while the element is at least `threshold` visible in the viewport
 // (grown by `rootMargin`, e.g. "100% 0px" to count a screen ahead).
-// True from the first time `value` is true.
-function useLatch(value) {
-  const [latched, setLatched] = useState(value);
-  if (value && !latched) {
-    setLatched(true);
-  }
-  return latched;
-}
-
 function useInView(ref, threshold = 0.15, rootMargin = "0px") {
   const [inView, setInView] = useState(false);
 
@@ -148,8 +139,6 @@ function AppSection({ app, index }) {
   // Drag the phone to spin it (on touch screens, a finger on the phone holds
   // the page still; see SceneViews).
   const phoneClass = "scroll-app-phone";
-  // Its canvas is created when the section first comes near, then kept.
-  const hasBeenNear = useLatch(isNear);
 
   useEffect(() => {
     if (inView) {
@@ -169,21 +158,17 @@ function AppSection({ app, index }) {
     >
       <div className="scroll-app-phone-wrap">
         <Suspense fallback={<div className={phoneClass} />}>
-          {hasBeenNear ? (
-            <PhoneView
-              className={phoneClass}
-              active={isNear}
-              sectionRef={sectionRef}
-              videoSrc={app.video}
-              videoLoad={isNear}
-              isPlaying={inView}
-              side={side}
-              draggable
-              companion={app.companion}
-            />
-          ) : (
-            <div className={phoneClass} />
-          )}
+          <PhoneView
+            className={phoneClass}
+            near={isNear}
+            sectionRef={sectionRef}
+            videoSrc={app.video}
+            videoLoad={isNear}
+            isPlaying={inView}
+            side={side}
+            draggable
+            companion={app.companion}
+          />
         </Suspense>
       </div>
 
@@ -269,11 +254,13 @@ function WaypointJourneySection({ app, index, scrollRef }) {
       </div>
 
       <div ref={trackRef} className="scroll-journey-track">
+        <div className="scroll-journey-mark scroll-journey-mark--start" aria-hidden="true" />
+        <div className="scroll-journey-mark scroll-journey-mark--end" aria-hidden="true" />
         <div ref={stageRef} className="scroll-journey-stage">
           <Suspense fallback={<div className="scroll-journey-view" />}>
             <JourneyView
               className="scroll-journey-view"
-              active={isNear}
+              near={isNear}
               progressRef={progressRef}
               videoSrc={app.video}
               videoLoad={isNear}

@@ -53,3 +53,6 @@ export function ClimbingShoeModel({ length = 2.6, renderOrder = 0, ...props }) {
     </group>
   );
 }
+
+// Fetched as soon as the 3D code loads, not when Chalkmark comes into view.
+useGLTF.preload(SHOE_PATH);

@@ -9,7 +9,7 @@ const LOCK_SCREEN_PATH = "/assets/models/iphone/lock-screen.jpg";
 
 // Each recording has its first frame saved beside it as a JPEG (same name),
 // shown until the video can play so the screen never flashes something else.
-function posterFor(videoSrc) {
+export function posterFor(videoSrc) {
   return videoSrc ? videoSrc.replace(/\.mp4$/i, ".jpg") : LOCK_SCREEN_PATH;
 }
 
@@ -26,14 +26,19 @@ const SCREEN_MATERIAL = "screen.001";
 
 /**
  * A silent, looping video texture. The video is only created once `load` is
- * true (the section is near), so recordings don't download up front, and it
- * only plays while `playing` is true. `offset` (0 to 1) starts it that far
- * into the recording, so two phones playing it aren't in step.
+ * true (the section is near), so recordings don't download up front, and is
+ * then kept (paused while `playing` is false) rather than rebuilt on every
+ * pass. `offset` (0 to 1) starts it that far into the recording, so two
+ * phones playing it aren't in step.
  */
 function useScreenVideoTexture(src, load, playing, offset = 0) {
   const [texture, setTexture] = useState(null);
+  const [wanted, setWanted] = useState(load);
+  if (load && !wanted) {
+    setWanted(true);
+  }
   const videoRef = useRef(null);
-  const shouldLoad = Boolean(src) && load;
+  const shouldLoad = Boolean(src) && wanted;
 
   useEffect(() => {
     if (!shouldLoad) {
