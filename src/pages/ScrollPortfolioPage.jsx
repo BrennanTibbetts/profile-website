@@ -290,11 +290,11 @@ export default function ScrollPortfolioPage({ pathname, navigate }) {
 
   // Scroll only this page's own scroller. (scrollIntoView would also scroll the
   // body, which the rest of the site locks, and shift the whole layout up.)
-  const scrollToApps = useCallback((behavior = "smooth") => {
+  const scrollToApps = useCallback(() => {
     const page = scrollRef.current;
     const appsSection = appsRef.current;
     if (page && appsSection) {
-      page.scrollTo({ top: appsSection.offsetTop, behavior });
+      page.scrollTo({ top: appsSection.offsetTop, behavior: "smooth" });
     }
   }, []);
 
@@ -322,13 +322,6 @@ export default function ScrollPortfolioPage({ pathname, navigate }) {
     page.querySelectorAll(":scope > section, :scope > div > section, :scope > footer").forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, []);
-
-  // /portfolio (where the resume links) opens on the apps rather than the intro.
-  useEffect(() => {
-    if (pathname === "/portfolio") {
-      scrollToApps("instant");
-    }
-  }, [pathname, scrollToApps]);
 
   return (
     <div ref={scrollRef} className="scroll-page">
